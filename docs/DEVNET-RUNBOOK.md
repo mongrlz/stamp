@@ -55,8 +55,11 @@ unpaid winners among the supplied participant wallets:
 ```bash
 npm run keeper:finalize -- --pool 3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH \
   --owner-keypair /absolute/path/to/creator.json \
-  --owner-keypair target/deploy/stamp-devnet-entrant-2.json
+  --owner-keypair target/deploy/stamp-devnet-entrant-2.json \
+  --record deployments/devnet.json
 ```
 
 This tool does not grant the keeper payout authority. Each claim remains signed by its
 winning wallet, and the program constrains the destination to that wallet's token account.
+The optional record path is written atomically after settlement and after every claim, so
+confirmed transaction evidence survives an interrupted operator session.

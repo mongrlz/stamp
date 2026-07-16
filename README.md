@@ -64,8 +64,12 @@ For the devnet proof run, the idempotent finalizer settles once TxLINE publishes
 
 ```bash
 npm run keeper:finalize -- --pool <POOL_PUBKEY> \
-  --owner-keypair <FIRST_JSON> --owner-keypair <SECOND_JSON>
+  --owner-keypair <FIRST_JSON> --owner-keypair <SECOND_JSON> \
+  --record deployments/devnet.json
 ```
+
+`--record` atomically checkpoints confirmed settlement and claim evidence after each step,
+making the operator command safe to resume after an RPC or process interruption.
 
 ## Core files
 
