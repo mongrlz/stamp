@@ -131,6 +131,49 @@ function Header({ view, onView }: { view: AppView; onView(value: AppView): void 
   );
 }
 
+function MarketWire({ pool, replay }: { pool: PublicPool | null; replay: ReplayResponse | null }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 1_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const home = replay?.fixture?.participant1 ?? "FRANCE";
+  const away = replay?.fixture?.participant2 ?? "ENGLAND";
+  const wire = [
+    ["ACTIVE MARKET", "FRANCE — ENGLAND"],
+    ["POOL", pool ? `${pool.entryCount} / ${pool.maxEntries} ENTERED` : "SYNCING"],
+    ["VAULT", pool ? `${formatPaperAmount((BigInt(pool.entryFee) * BigInt(pool.entryCount)).toString())} TEST USDT` : "—"],
+    ["SETTLEMENT", pool ? formatCountdown(pool.settleAfter, now) : "—"],
+    ["STATUS", pool?.status.toUpperCase() ?? "CONNECTING"],
+    ["TXLINE", pool ? `FIXTURE ${pool.fixtureId}` : "PROOF FEED"],
+    ["PAPER REPLAY", replay ? `${home} — ${away}` : "LOADING"],
+    ["REPLAY", replay ? `${replay.frameCount} EVENTS · SEQ ${replay.finalSequence ?? replay.maxSequence}` : "LOADING"],
+    ["NETWORK", "SOLANA DEVNET"],
+  ];
+
+  return (
+    <section aria-label="Live STAMP market wire" className="market-wire">
+      <div className="market-wire__label"><StatusDot /> MARKET WIRE</div>
+      <div className="market-wire__viewport">
+        <div className="market-wire__track">
+          {[0, 1].map((copy) => (
+            <div aria-hidden={copy === 1} className="market-wire__set" key={copy}>
+              {wire.map(([label, value]) => (
+                <div className="market-wire__item" key={`${copy}-${label}`}>
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function StatusDot({ green = false }: { green?: boolean }) {
   return <span aria-hidden="true" className={`status-dot ${green ? "is-green" : ""}`} />;
 }
@@ -879,6 +922,7 @@ export function App() {
   return (
     <div className="paper-app min-h-[100dvh] text-ink">
       <Header onView={setView} view={view} />
+      <MarketWire pool={pool} replay={replay} />
       {body}
       <footer className="mx-auto flex w-full max-w-[1500px] flex-wrap justify-between gap-3 border-t border-ink px-5 py-4 font-mono text-[0.65rem] tracking-[0.08em] md:px-8">
         <span>STAMP · TxLINE · SOLANA DEVNET</span>

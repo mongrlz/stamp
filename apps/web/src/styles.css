@@ -1,3 +1,6 @@
+@import "@fontsource/bebas-neue/400.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/600.css";
 @import "tailwindcss";
 
 @theme {
@@ -7,9 +10,9 @@
   --color-blue: #0e42dc;
   --color-green: #0e7f28;
   --color-red: #d82b24;
-  --font-display: "DIN Condensed", "Avenir Next Condensed", "Arial Narrow", Impact, sans-serif;
-  --font-condensed: "DIN Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif;
-  --font-mono: "SFMono-Regular", Menlo, "Courier New", Courier, monospace;
+  --font-display: "Bebas Neue", "DIN Condensed", "Arial Narrow", sans-serif;
+  --font-condensed: "Bebas Neue", "DIN Condensed", "Arial Narrow", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
 }
 
 :root {
@@ -99,6 +102,88 @@ a:focus-visible {
   font-family: var(--font-display);
   letter-spacing: -0.035em !important;
   text-shadow: 0 1px 0 rgb(255 255 255 / 0.7);
+}
+
+.market-wire {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  width: 100%;
+  min-height: 2.8rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+  overflow: hidden;
+  border-bottom: 2px solid var(--color-ink);
+  background: rgb(24 24 20 / 0.96);
+  color: var(--color-paper-bright);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1), 0 5px 16px rgb(54 37 15 / 0.1);
+}
+
+.market-wire__label {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 1.25rem;
+  border-right: 1px solid rgb(255 255 255 / 0.25);
+  background: var(--color-blue);
+  font-family: var(--font-condensed);
+  font-size: 0.9rem;
+  letter-spacing: 0.09em;
+  white-space: nowrap;
+}
+
+.market-wire__label .status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background: white;
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 0.15);
+}
+
+.market-wire__viewport { min-width: 0; overflow: hidden; }
+
+.market-wire__track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+  animation: market-wire-scroll 42s linear infinite;
+  will-change: transform;
+}
+
+.market-wire:hover .market-wire__track,
+.market-wire:focus-within .market-wire__track { animation-play-state: paused; }
+
+.market-wire__set { display: flex; flex: none; align-items: center; }
+
+.market-wire__item {
+  display: flex;
+  min-height: 2.8rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0 1.35rem;
+  border-right: 1px solid rgb(255 255 255 / 0.16);
+  white-space: nowrap;
+}
+
+.market-wire__item span {
+  color: rgb(255 253 247 / 0.55);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+}
+
+.market-wire__item strong {
+  color: var(--color-paper-bright);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.market-wire__item:nth-child(4) strong,
+.market-wire__item:nth-child(5) strong { color: #70d58a; }
+
+@keyframes market-wire-scroll {
+  to { transform: translate3d(-50%, 0, 0); }
 }
 
 .nav-link {
@@ -325,6 +410,7 @@ a:focus-visible {
 
 .primary-action,
 .secondary-action {
+  position: relative;
   display: flex;
   width: 100%;
   min-height: 5.15rem;
@@ -332,11 +418,13 @@ a:focus-visible {
   justify-content: center;
   cursor: pointer;
   border: 2px solid var(--color-blue);
-  border-radius: 0.45rem;
+  border-radius: 0.72rem;
   font-family: var(--font-display);
-  font-size: clamp(1.45rem, 2.4vw, 2.2rem);
+  padding: 0.8rem 1.5rem;
+  font-size: clamp(1.8rem, 3vw, 2.85rem);
   font-weight: 900;
   letter-spacing: 0.025em;
+  line-height: 0.95;
   text-align: center;
   text-decoration: none;
   transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
@@ -348,45 +436,84 @@ a:focus-visible {
   text-shadow: 0 1px 0 rgb(0 0 0 / 0.24);
 }
 
-.primary-action:hover { background: #083daf; }
+.primary-action:hover { background: linear-gradient(180deg, #2057f0 0%, #1045db 58%, #092fa9 100%); }
 .primary-action:disabled { cursor: not-allowed; filter: saturate(0.65); opacity: 0.65; }
 .secondary-action { background: rgb(255 253 247 / 0.42); color: var(--color-blue); }
 .secondary-action:hover { background: rgb(11 70 216 / 0.08); }
 .primary-action:active,
 .secondary-action:active { transform: translateY(1px) scale(0.995); }
-.primary-action.is-link { font-size: clamp(1.2rem, 1.9vw, 1.65rem); }
+.primary-action.is-link { font-size: clamp(1.65rem, 2.3vw, 2.2rem); }
 
 .physical-button {
+  isolation: isolate;
+  overflow: hidden;
   border-color: var(--color-ink);
-  border-width: 2px;
-  border-radius: 0.45rem;
+  border-width: 4px;
+  border-radius: 0.72rem;
   box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.38),
+    inset 0 0 0 3px rgb(255 255 255 / 0.28),
+    inset 0 -10px 14px rgb(8 16 52 / 0.17),
+    inset 0 6px 8px rgb(255 255 255 / 0.12),
+    0 3px 0 #090907,
     7px 8px 0 var(--color-ink),
-    0 17px 25px rgb(56 40 17 / 0.14);
+    0 18px 28px rgb(56 40 17 / 0.2);
   transition: transform 140ms ease, box-shadow 140ms ease, background-color 160ms ease, color 160ms ease;
 }
 
+.physical-button::before {
+  position: absolute;
+  z-index: 1;
+  inset: 5px;
+  pointer-events: none;
+  content: "";
+  border: 2px solid rgb(255 255 255 / 0.34);
+  border-radius: 0.38rem;
+  box-shadow: inset 0 0 0 1px rgb(24 24 20 / 0.24);
+}
+
+.physical-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 3px rgb(255 255 255 / 0.3),
+    inset 0 -10px 14px rgb(8 16 52 / 0.18),
+    inset 0 6px 8px rgb(255 255 255 / 0.14),
+    0 3px 0 #090907,
+    8px 10px 0 var(--color-ink),
+    0 22px 32px rgb(56 40 17 / 0.22);
+}
+
 .physical-button:active:not(:disabled) {
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25), 2px 3px 0 var(--color-ink);
+  box-shadow: inset 0 0 0 3px rgb(255 255 255 / 0.22), inset 0 5px 10px rgb(0 0 0 / 0.18), 2px 3px 0 var(--color-ink);
   transform: translate(5px, 5px);
 }
 
+.secondary-action.physical-button {
+  box-shadow:
+    inset 0 0 0 3px rgb(14 66 220 / 0.18),
+    inset 0 -9px 14px rgb(71 52 25 / 0.08),
+    0 3px 0 #090907,
+    7px 8px 0 var(--color-ink),
+    0 18px 28px rgb(56 40 17 / 0.16);
+}
+
 .danger-action {
+  position: relative;
   display: flex;
   width: 100%;
   min-height: 4.8rem;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 2px solid var(--color-ink);
-  border-radius: 0.45rem;
+  border: 4px solid var(--color-ink);
+  border-radius: 0.72rem;
   background: linear-gradient(180deg, #ea3830 0%, var(--color-red) 62%, #b8201b 100%);
   color: var(--color-paper-bright);
   font-family: var(--font-display);
-  font-size: clamp(1.15rem, 2vw, 1.7rem);
+  padding: 0.8rem 1.5rem;
+  font-size: clamp(1.75rem, 2.6vw, 2.4rem);
   font-weight: 900;
   letter-spacing: 0.025em;
+  line-height: 0.95;
   text-shadow: 0 1px 0 rgb(0 0 0 / 0.24);
 }
 
@@ -431,7 +558,7 @@ a:focus-visible {
 .archive-title { margin: 0; font-family: var(--font-display); font-size: clamp(5rem, 10vw, 9.4rem); font-weight: 900; line-height: 0.82; letter-spacing: -0.055em; }
 .archive-subtitle { margin: 1.4rem 0 2.4rem; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.08em; }
 .receipt-filters { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.7rem; padding: 0.75rem 0; border-block: 2px solid var(--color-ink); }
-.receipt-filters button { position: relative; min-height: 3.5rem; cursor: pointer; border: 2px solid var(--color-ink); border-radius: 0.35rem; background: rgb(255 253 247 / 0.44); font-family: var(--font-condensed); font-size: 0.95rem; font-weight: 900; box-shadow: inset 0 1px 0 white; transition: transform 140ms ease, background-color 160ms ease, color 160ms ease, box-shadow 140ms ease; }
+.receipt-filters button { position: relative; display: grid; min-height: 4.1rem; place-items: center; padding: 0.65rem 0.8rem; cursor: pointer; border: 2px solid var(--color-ink); border-radius: 0.35rem; background: rgb(255 253 247 / 0.44); font-family: var(--font-condensed); font-size: clamp(1.1rem, 1.45vw, 1.35rem); font-weight: 900; line-height: 1; letter-spacing: 0.045em; text-align: center; box-shadow: inset 0 1px 0 white; transition: transform 140ms ease, background-color 160ms ease, color 160ms ease, box-shadow 140ms ease; }
 .receipt-filters button::after { content: none; }
 .receipt-filters button:hover,
 .receipt-filters button.is-active { border-color: var(--color-blue); background: var(--color-blue); color: white; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.42), 0 3px 0 var(--color-ink); }
@@ -447,7 +574,7 @@ a:focus-visible {
 .receipt-row strong,
 .receipt-row small,
 .receipt-row span { display: block; }
-.receipt-row > div:first-child strong { font-family: var(--font-display); font-size: clamp(1.7rem, 3.3vw, 3rem); line-height: 0.95; }
+.receipt-row > div:first-child strong { max-width: 100%; overflow-wrap: anywhere; font-family: var(--font-display); font-size: clamp(1.7rem, 2.45vw, 2.5rem); line-height: 0.95; letter-spacing: 0.01em; }
 .receipt-row small { margin-top: 0.65rem; font-size: 0.62rem; letter-spacing: 0.04em; }
 .receipt-row span { margin-bottom: 0.55rem; font-size: 0.6rem; letter-spacing: 0.06em; }
 .receipt-row > div:not(:first-child) strong { font-size: 1rem; }
@@ -499,11 +626,21 @@ a:focus-visible {
   position: relative;
   padding: 1.7rem 1.55rem 2.6rem;
   background:
-    radial-gradient(circle at 28% 8%, rgb(255 255 255 / 0.92), transparent 31%),
-    linear-gradient(90deg, rgb(85 63 30 / 0.045), transparent 9%, transparent 91%, rgb(85 63 30 / 0.045)),
-    #faf8f2;
-  clip-path: polygon(0 0, 2% 1.2%, 4% 0, 6% 1.2%, 8% 0, 10% 1.2%, 12% 0, 14% 1.2%, 16% 0, 18% 1.2%, 20% 0, 22% 1.2%, 24% 0, 26% 1.2%, 28% 0, 30% 1.2%, 32% 0, 34% 1.2%, 36% 0, 38% 1.2%, 40% 0, 42% 1.2%, 44% 0, 46% 1.2%, 48% 0, 50% 1.2%, 52% 0, 54% 1.2%, 56% 0, 58% 1.2%, 60% 0, 62% 1.2%, 64% 0, 66% 1.2%, 68% 0, 70% 1.2%, 72% 0, 74% 1.2%, 76% 0, 78% 1.2%, 80% 0, 82% 1.2%, 84% 0, 86% 1.2%, 88% 0, 90% 1.2%, 92% 0, 94% 1.2%, 96% 0, 98% 1.2%, 100% 0, 100% 98.8%, 98% 100%, 96% 98.8%, 94% 100%, 92% 98.8%, 90% 100%, 88% 98.8%, 86% 100%, 84% 98.8%, 82% 100%, 80% 98.8%, 78% 100%, 76% 98.8%, 74% 100%, 72% 98.8%, 70% 100%, 68% 98.8%, 66% 100%, 64% 98.8%, 62% 100%, 60% 98.8%, 58% 100%, 56% 98.8%, 54% 100%, 52% 98.8%, 50% 100%, 48% 98.8%, 46% 100%, 44% 98.8%, 42% 100%, 40% 98.8%, 38% 100%, 36% 98.8%, 34% 100%, 32% 98.8%, 30% 100%, 28% 98.8%, 26% 100%, 24% 98.8%, 22% 100%, 20% 98.8%, 18% 100%, 16% 98.8%, 14% 100%, 12% 98.8%, 10% 100%, 8% 98.8%, 6% 100%, 4% 98.8%, 2% 100%, 0 98.8%);
-  filter: drop-shadow(11px 15px 9px rgb(65 48 26 / 0.24));
+    radial-gradient(circle at 24% 6%, rgb(255 255 255 / 0.58), transparent 28%),
+    linear-gradient(90deg, rgb(85 63 30 / 0.06), transparent 8%, transparent 91%, rgb(85 63 30 / 0.07)),
+    url("./assets/thermal-paper-v1.png") center / cover;
+  -webkit-mask:
+    linear-gradient(#000 0 0) center / calc(100% - 8px) calc(100% - 12px) no-repeat,
+    radial-gradient(circle at 50% 100%, #000 68%, transparent 72%) top / 13px 8px repeat-x,
+    radial-gradient(circle at 50% 0%, #000 68%, transparent 72%) bottom / 13px 8px repeat-x;
+  mask:
+    linear-gradient(#000 0 0) center / calc(100% - 8px) calc(100% - 12px) no-repeat,
+    radial-gradient(circle at 50% 100%, #000 68%, transparent 72%) top / 13px 8px repeat-x,
+    radial-gradient(circle at 50% 0%, #000 68%, transparent 72%) bottom / 13px 8px repeat-x;
+  filter:
+    drop-shadow(0 2px 1px rgb(255 255 255 / 0.7))
+    drop-shadow(12px 18px 11px rgb(65 48 26 / 0.28));
+  transform: rotate(-0.12deg) translateZ(0);
 }
 
 .receipt::before {
@@ -511,12 +648,29 @@ a:focus-visible {
   inset: 0;
   pointer-events: none;
   content: "";
-  opacity: 0.2;
-  background-image: repeating-radial-gradient(circle, rgb(47 39 26 / 0.22) 0 0.4px, transparent 0.65px 3px);
-  background-size: 4px 4px;
+  z-index: 0;
+  opacity: 0.46;
+  background:
+    linear-gradient(88deg, transparent 0 13%, rgb(96 75 44 / 0.045) 13.2%, transparent 13.8% 72%, rgb(96 75 44 / 0.035) 72.4%, transparent 73%),
+    linear-gradient(176deg, transparent 0 41%, rgb(255 255 255 / 0.34) 41.3%, rgb(87 64 29 / 0.035) 41.7%, transparent 42.2%),
+    radial-gradient(ellipse at center, transparent 62%, rgb(79 57 24 / 0.07));
 }
 
-.receipt > * { position: relative; }
+.receipt::after {
+  position: absolute;
+  z-index: 0;
+  right: 4%;
+  bottom: 1.2%;
+  left: 5%;
+  height: 1.1rem;
+  pointer-events: none;
+  content: "";
+  border-radius: 50%;
+  background: linear-gradient(180deg, transparent, rgb(105 78 38 / 0.08));
+  filter: blur(5px);
+}
+
+.receipt > * { position: relative; z-index: 1; }
 .receipt__status { display: flex; align-items: center; gap: 0.6rem; color: var(--color-blue); font-family: var(--font-condensed); font-size: 1rem; font-weight: 900; letter-spacing: 0.065em; }
 .receipt h2 { margin: 0.9rem 0 0; font-family: var(--font-condensed); font-size: clamp(1.8rem, 2.6vw, 2.3rem); font-weight: 900; letter-spacing: 0.035em; }
 .receipt__rule { margin: 0.75rem 0; border-top: 1px dashed var(--color-ink); }
@@ -659,6 +813,9 @@ a:focus-visible {
 
 @media (max-width: 767px) {
   .paper-app { min-height: 100dvh !important; margin: 0; border: 0; border-radius: 0; }
+  .market-wire { grid-template-columns: auto minmax(0, 1fr); min-height: 2.6rem; }
+  .market-wire__label { padding: 0 0.85rem; font-size: 0.78rem; }
+  .market-wire__item { min-height: 2.6rem; padding: 0 1rem; }
   .match-title { grid-template-columns: 1fr; gap: 0; font-size: clamp(3.5rem, 17vw, 6rem); }
   .match-title span:last-child { text-align: left; }
   .match-title i { display: none; }
@@ -679,7 +836,7 @@ a:focus-visible {
   .match-selector__head span:last-child { display: none; }
   .pool-metrics { grid-template-columns: 1fr 1fr; }
   .receipt-filters { grid-template-columns: repeat(5, minmax(5.4rem, 1fr)); overflow-x: auto; }
-  .receipt-filters button { min-height: 3.25rem; font-size: 0.75rem; }
+  .receipt-filters button { min-height: 3.45rem; font-size: 0.92rem; }
   .receipt-row { grid-template-columns: 1fr auto; gap: 1rem; min-height: 0; padding: 1.4rem 0; }
   .receipt-row > div { border-right: 0; }
   .receipt-row > div:nth-child(4) { display: none; }
@@ -716,4 +873,5 @@ a:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+  .market-wire__track { animation: none; }
 }
