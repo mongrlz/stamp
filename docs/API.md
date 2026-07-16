@@ -52,6 +52,14 @@ The service then emits normalized `score`/`heartbeat` events and its own keepali
 Raw provider objects and credentials are never relayed. Disconnecting the browser aborts the
 upstream stream.
 
+### `GET /api/matches/:fixtureId/replay`
+
+Returns a cached, browser-safe historical replay. It keeps match-state milestones and changes
+to TxLINE stat keys `1,2,7,8`, expressed in provider participant order. Each frame contains its
+sequence, timestamp, match clock, action, participant, confirmation state, and running
+four-value fingerprint. Completed matches include `finalSequence` and `finalFingerprint`.
+Raw provider payloads and credentials are discarded.
+
 ## Failure behavior
 
 - invalid fixture/public-key input: HTTP 400

@@ -1,4 +1,4 @@
-# STAMP Backend Architecture
+# STAMP Architecture
 
 ## Trust boundaries
 
@@ -9,6 +9,18 @@
 | TxLINE program | authenticate committed match-stat leaves | move STAMP vault funds |
 | Keeper | read replay/API, fetch proof, pay settlement fee | modify pool rules, forge final vector, redirect payout |
 | Browser UI | build wallet transactions, read public state | receive TxLINE credentials or sign as keeper |
+
+## Replay paper mode
+
+The browser requests a normalized historical match from the read-only API. TxLINE credentials,
+raw provider fields, and keeper authority stay server-side. The API retains only milestone or
+fingerprint-changing frames, maps stat keys `1, 2, 7, 8` into participant order, and caches the
+safe response for ten minutes.
+
+Paper entries never create transactions. The browser applies the contract's exact distance and
+tie-splitting rules to an eight-entry simulated field, then labels the resulting payout as
+hypothetical. The final fingerprint and proof link remain authentic, giving the product a useful
+zero-risk onboarding and demo path without implying that simulated funds were settled on-chain.
 
 ## Settlement sequence
 

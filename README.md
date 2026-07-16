@@ -12,7 +12,7 @@ on-chain code, and lets the closest wallet or tied wallets claim the pot.
 
 There is no admin resolution path and the keeper cannot redirect funds.
 
-## Current backend status
+## Current status
 
 - Anchor 0.32.1 program with wallet position PDAs and standard SPL-token escrow
 - bounded deterministic ranking for a maximum of 16 entries
@@ -22,8 +22,12 @@ There is no admin resolution path and the keeper cannot redirect funds.
 - read-only HTTP API with sanitized fixtures, pools, receipts, health, and live SSE
 - permissionless one-shot keeper plus a polling settlement/refund daemon
 - generated client IDL under `packages/stamp-sdk/src/idl/stamp.json`
+- responsive React paper-replay experience driven by a real archived TxLINE match
+- editable four-stat STAMP, event playback, physical receipt, deterministic paper leaderboard,
+  and a link to the verified Solana proof
 
-The frontend is intentionally not implemented yet.
+Paper replay never connects a wallet or moves funds. Its match sequence and final fingerprint
+are authentic; its entries, rankings, and payouts are explicitly hypothetical.
 
 ## Commands
 
@@ -34,6 +38,16 @@ npm test
 npm run test:local
 npx tsc --noEmit
 ```
+
+Start the API and web app together after configuring `.env` from `.env.example`:
+
+```bash
+npm run dev
+```
+
+Open `http://127.0.0.1:5173`. The current demo replays Belgium–Senegal fixture `18179550`
+through 47 normalized milestones and settles the paper receipt against its authenticated
+`[3, 2, 4, 2]` final fingerprint.
 
 Run the keeper after configuring `.env` from `.env.example`:
 
@@ -77,12 +91,14 @@ making the operator command safe to resume after an RPC or process interruption.
 - `programs/stamp/src/oracle.rs` — TxLINE v3 wire ABI and CPI safety checks
 - `packages/txline/src` — private server/keeper TxLINE adapter
 - `packages/stamp-sdk/src` — wallet-facing PDA helpers and generated IDL
+- `apps/web/src` — responsive paper replay, receipt, results, and proof UI
 - `services/keeper/src/settle.ts` — permissionless settlement submitter
 - `services/keeper/src/daemon.ts` — idempotent pool watcher, settlement, and refund worker
 - `services/api/src` — credential-safe public read/SSE service
 - `STAMP-SPEC.md` — final product and scoring contract
 - `docs/ARCHITECTURE.md` — trust boundaries and transaction lifecycle
 - `docs/API.md` — route and operational contract
+- `docs/REPLAY-PAPER-MODE.md` — replay trust boundary and scoring behavior
 
 ## Programs
 

@@ -11,6 +11,7 @@ export type ApiDependencies = {
   programId: PublicKey;
   health(): Promise<Record<string, unknown>>;
   fixtures(): Promise<unknown>;
+  replay(fixtureId: number): Promise<unknown>;
   pool(address: PublicKey): Promise<RawPool>;
   scoresStream(options: { fixtureId: number; signal: AbortSignal }): AsyncGenerator<SseRecord>;
 };
@@ -148,6 +149,11 @@ export function createApiServer(
       const liveMatch = url.pathname.match(/^\/api\/matches\/(\d+)\/live$/);
       if (liveMatch) {
         await streamScores(request, response, deps, fixtureId(liveMatch[1]!), corsOrigin);
+        return;
+      }
+      const replayMatch = url.pathname.match(/^\/api\/matches\/(\d+)\/replay$/);
+      if (replayMatch) {
+        json(response, 200, await deps.replay(fixtureId(replayMatch[1]!)), corsOrigin);
         return;
       }
       const receiptMatch = url.pathname.match(/^\/api\/pools\/([^/]+)\/proof$/);

@@ -63,6 +63,13 @@ function dependencies(status: "locked" | "settled" = "locked"): ApiDependencies 
         Participant2: "Argentina",
       },
     ]),
+    replay: async (fixtureId) => ({
+      fixtureId,
+      finalized: true,
+      finalSequence: 42,
+      finalFingerprint: [3, 2, 4, 2],
+      frames: [{ sequence: 42, action: "game_finalised", fingerprint: [3, 2, 4, 2] }],
+    }),
     pool: async () => fakePool(status),
     scoresStream: async function* () {
       yield {
@@ -120,6 +127,17 @@ test("API exposes a public pool and deterministic settlement receipt", async () 
     assert.equal(receipt.winners.length, 1);
     assert.equal(receipt.winners[0].owner, ownerA.toBase58());
     assert.equal(receipt.proof.eventSubtreeRootHex, "09".repeat(32));
+  });
+});
+
+test("API exposes a normalized historical replay", async () => {
+  await withServer(dependencies(), async (base) => {
+    const response = await fetch(`${base}/api/matches/18179550/replay`);
+    assert.equal(response.status, 200);
+    const replay = await response.json() as any;
+    assert.equal(replay.finalized, true);
+    assert.equal(replay.finalSequence, 42);
+    assert.deepEqual(replay.finalFingerprint, [3, 2, 4, 2]);
   });
 });
 

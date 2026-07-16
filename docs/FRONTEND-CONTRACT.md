@@ -68,6 +68,7 @@ The backend now provides the deliberately small API:
 
 - `GET /api/fixtures` — sanitized fixture snapshot, no TxLINE token
 - `GET /api/matches/:fixtureId/live` — normalized SSE relay
+- `GET /api/matches/:fixtureId/replay` — sanitized historical frames and final fingerprint
 - `GET /api/pools/:pool/proof` — public settlement receipt assembled from Pool state
 - `GET /health` — RPC, TxLINE token-refresh, and keeper readiness
 

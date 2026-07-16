@@ -8,6 +8,9 @@
     "node": ">=22"
   },
   "scripts": {
+    "dev": "node --env-file-if-exists=.env --import tsx scripts/dev.ts",
+    "web:dev": "vite --config apps/web/vite.config.ts",
+    "web:build": "vite build --config apps/web/vite.config.ts",
     "build": "anchor build && npm run idl:sync",
     "build:test-programs": "anchor build -p mock_txline && anchor build -p stamp -- --features mock-oracle && npm run idl:sync",
     "idl:sync": "mkdir -p packages/stamp-sdk/src/idl && cp target/idl/stamp.json packages/stamp-sdk/src/idl/stamp.json",
@@ -34,12 +37,20 @@
     "@solana/spl-token": "0.4.14",
     "@solana/web3.js": "1.98.4",
     "bn.js": "5.2.5",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "zod": "3.25.76"
   },
   "devDependencies": {
-    "@types/node": "24.0.14",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/bn.js": "5.2.0",
+    "@types/node": "24.0.14",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^6.0.3",
+    "tailwindcss": "^4.3.3",
     "tsx": "4.20.3",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "vite": "^8.1.5"
   }
 }

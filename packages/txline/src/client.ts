@@ -42,8 +42,12 @@ export class TxLineClient {
     return response;
   }
 
-  async fixtures(): Promise<unknown> {
-    return (await this.request("/api/fixtures/snapshot")).json();
+  async fixtures(options: { startEpochDay?: number; competitionId?: number } = {}): Promise<unknown> {
+    const query = new URLSearchParams();
+    if (options.startEpochDay !== undefined) query.set("startEpochDay", options.startEpochDay.toString());
+    if (options.competitionId !== undefined) query.set("competitionId", options.competitionId.toString());
+    const suffix = query.size > 0 ? `?${query}` : "";
+    return (await this.request(`/api/fixtures/snapshot${suffix}`)).json();
   }
 
   async scoresSnapshot(fixtureId: number): Promise<unknown> {

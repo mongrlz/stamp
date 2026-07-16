@@ -30,8 +30,12 @@ Mitigations in this project:
 - TxLINE and RPC responses are schema-checked or parsed into fixed shapes.
 - Untrusted input never reaches `bigint-buffer` conversion helpers directly.
 - Keeper secrets remain in ignored JSON/env files and are not accepted over an HTTP route.
-- Browser code will never bundle the keeper or TxLINE server packages.
+- Browser code does not bundle the keeper or TxLINE client and receives only normalized,
+  cached replay milestones from the read-only API.
 - Dependency migration to Solana's newer client stack should happen after Anchor exposes a compatible path.
+
+The web toolchain uses patched Vite `8.1.5`; npm's remaining 10 findings (7 moderate and 3
+high) are confined to the legacy Anchor/Solana dependency chain described above.
 
 ## Not yet audited
 

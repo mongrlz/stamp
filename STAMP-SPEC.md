@@ -13,9 +13,10 @@ both a simple consumer sentence and a settlement primitive judges can inspect di
 
 ## Forecast and distance
 
-Every entrant submits `[home goals, away goals, home corners, away corners]` in that fixed
-order. Forecast bounds are `0..20` for goals and `0..40` for corners. One wallet can hold
-one position in a pool.
+Every entrant submits TxLINE keys `[1,2,7,8]` in that fixed order: participant 1 goals,
+participant 2 goals, participant 1 corners, participant 2 corners. The UI maps participant
+1/2 to home/away with the fixture's `Participant1IsHome` flag. Forecast bounds are `0..20`
+for goals and `0..40` for corners. One wallet can hold one position in a pool.
 
 The contract computes:
 
