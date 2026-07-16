@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { AnchorProvider, Program, Wallet, type Idl } from "@coral-xyz/anchor";
 import {
   TOKEN_PROGRAM_ID,
+  getAccount,
   getOrCreateAssociatedTokenAccount,
   transfer,
 } from "@solana/spl-token";
@@ -17,20 +18,22 @@ import {
 import BN from "bn.js";
 
 import { derivePoolPda, derivePositionPda, deriveVaultPda } from "../packages/stamp-sdk/src/pdas.js";
+import { planLivePoolTiming } from "../services/shared/src/live-pool-timing.js";
 
 const STAMP_PROGRAM = new PublicKey("7Xh5gJZN2SoYmDLsVQKtqFoB8pxrvykn9S8hjFWguE5o");
 const DEVNET_USDT_MINT = new PublicKey("ELWTKspHKCnCfCiCiqYw1EDH77k8VCP74dK9qytG2Ujh");
 const ENTRY_FEE = 1_000_000;
+const ENTRANT_SOL_TARGET = Math.floor(0.05 * LAMPORTS_PER_SOL);
 
 function keypair(filePath: string): Keypair {
   return Keypair.fromSecretKey(Uint8Array.from(JSON.parse(fs.readFileSync(filePath, "utf8")) as number[]));
 }
 
 async function main(): Promise<void> {
-  const [authorityPath, entrantPath, fixtureText, kickoffText] = process.argv.slice(2);
+  const [authorityPath, entrantPath, fixtureText, kickoffText, fixtureName] = process.argv.slice(2);
   if (!authorityPath || !entrantPath || !fixtureText || !kickoffText) {
     throw new Error(
-      "Usage: npm run devnet:seed-pool -- <AUTHORITY_JSON> <ENTRANT_JSON> <FIXTURE_ID> <KICKOFF_MS>",
+      "Usage: npm run devnet:seed-pool -- <AUTHORITY_JSON> <ENTRANT_JSON> <FIXTURE_ID> <KICKOFF_MS> [FIXTURE_NAME]",
     );
   }
   const fixtureId = Number.parseInt(fixtureText, 10);
@@ -38,6 +41,8 @@ async function main(): Promise<void> {
   if (!Number.isSafeInteger(fixtureId) || !Number.isSafeInteger(kickoffMs)) {
     throw new Error("Fixture id and kickoff must be safe integers");
   }
+  // Reject unsafe fixture timing before reading balances or sending any funding.
+  planLivePoolTiming({ nowMs: Date.now(), kickoffMs });
   const creator = keypair(authorityPath);
   const entrant = keypair(entrantPath);
   const connection = new Connection("https://api.devnet.solana.com", "confirmed");
@@ -48,17 +53,26 @@ async function main(): Promise<void> {
   const idl = JSON.parse(fs.readFileSync("target/idl/stamp.json", "utf8")) as Idl;
   const program = new Program(idl, provider);
   if (!program.programId.equals(STAMP_PROGRAM)) throw new Error("STAMP IDL address mismatch");
+  const poolId = BigInt(fixtureId);
+  const [pool] = derivePoolPda(program.programId, creator.publicKey, poolId);
+  const [vault] = deriveVaultPda(program.programId, pool);
+  if (await connection.getAccountInfo(pool, "confirmed")) {
+    throw new Error(`Pool ${pool.toBase58()} already exists for fixture ${fixtureId}`);
+  }
 
-  const entrantFundingSignature = await sendAndConfirmTransaction(
-    connection,
-    new Transaction().add(SystemProgram.transfer({
-      fromPubkey: creator.publicKey,
-      toPubkey: entrant.publicKey,
-      lamports: Math.floor(0.05 * LAMPORTS_PER_SOL),
-    })),
-    [creator],
-    { commitment: "confirmed" },
-  );
+  const entrantBalance = await connection.getBalance(entrant.publicKey, "confirmed");
+  const entrantFundingSignature = entrantBalance < ENTRANT_SOL_TARGET
+    ? await sendAndConfirmTransaction(
+        connection,
+        new Transaction().add(SystemProgram.transfer({
+          fromPubkey: creator.publicKey,
+          toPubkey: entrant.publicKey,
+          lamports: ENTRANT_SOL_TARGET - entrantBalance,
+        })),
+        [creator],
+        { commitment: "confirmed" },
+      )
+    : null;
   const creatorTokens = await getOrCreateAssociatedTokenAccount(
     connection,
     creator,
@@ -71,22 +85,23 @@ async function main(): Promise<void> {
     DEVNET_USDT_MINT,
     entrant.publicKey,
   );
-  const tokenFundingSignature = await transfer(
-    connection,
-    creator,
-    creatorTokens.address,
-    entrantTokens.address,
-    creator,
-    3 * ENTRY_FEE,
-  );
+  const entrantTokenBalance = (await getAccount(connection, entrantTokens.address, "confirmed")).amount;
+  const entrantTokenTarget = BigInt(2 * ENTRY_FEE);
+  const tokenFundingSignature = entrantTokenBalance < entrantTokenTarget
+    ? await transfer(
+        connection,
+        creator,
+        creatorTokens.address,
+        entrantTokens.address,
+        creator,
+        entrantTokenTarget - entrantTokenBalance,
+      )
+    : null;
 
-  const poolId = BigInt(fixtureId);
-  const [pool] = derivePoolPda(program.programId, creator.publicKey, poolId);
-  const [vault] = deriveVaultPda(program.programId, pool);
-  const kickoff = Math.floor(kickoffMs / 1000);
-  const cutoffAt = kickoff - 15 * 60;
-  const settleAfter = kickoff + 4 * 60 * 60;
-  const refundAfter = settleAfter + 24 * 60 * 60;
+  const { cutoffAt, settleAfter, refundAfter } = planLivePoolTiming({
+    nowMs: Date.now(),
+    kickoffMs,
+  });
   const methods = program.methods as unknown as Record<string, (...args: unknown[]) => any>;
   const createSignature = await methods.createPool({
     poolId: new BN(poolId.toString()),
@@ -131,7 +146,7 @@ async function main(): Promise<void> {
   process.stdout.write(`${JSON.stringify({
     program: program.programId.toBase58(),
     fixtureId,
-    fixture: "France vs England",
+    fixture: fixtureName ?? `TxLINE fixture ${fixtureId}`,
     kickoffMs,
     poolId: poolId.toString(),
     pool: pool.toBase58(),

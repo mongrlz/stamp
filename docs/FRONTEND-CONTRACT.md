@@ -61,8 +61,11 @@ means that wallet has not entered.
 
 Call `create_pool(args)` with creator, derived Pool/Vault PDAs, selected mint, its token
 program, and System Program. Product defaults should be 8 entrants, one stable-token entry
-fee, cutoff 15 minutes before kickoff, settlement 4 hours after kickoff, and refund 24 hours
-later.
+fee, and a cutoff early enough that the production four-hour settlement delay ends before a
+normal final proof. The refund deadline must remain after the match while staying within the
+program's 48-hour maximum grace. The devnet seeder uses a ten-minute entry window,
+`settle_after = cutoff + 4h`, `refund_after = settle_after + 48h`, and rejects fixtures that
+do not retain a six-hour post-kickoff finality margin.
 
 ### Enter
 
@@ -107,5 +110,7 @@ See `docs/API.md` for response details and local operation.
 
 ## Current devnet reference
 
-`deployments/devnet.json` contains the live France–England pool, wallet positions, vault,
-timestamps, and confirmed transaction signatures. It contains no secret keys or API tokens.
+`deployments/devnet.json` contains the first France–England UI pool. The authoritative live
+settlement run is `deployments/devnet-settlement-proof.json`, containing the corrected
+Vietnam–Myanmar pool, wallet positions, vault, timestamps, and confirmed transaction
+signatures. Neither artifact contains secret keys or API tokens.

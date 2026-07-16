@@ -1,0 +1,41 @@
+{
+  "cluster": "devnet",
+  "program": {
+    "address": "7Xh5gJZN2SoYmDLsVQKtqFoB8pxrvykn9S8hjFWguE5o"
+  },
+  "txline": {
+    "program": "6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J",
+    "testUsdtMint": "ELWTKspHKCnCfCiCiqYw1EDH77k8VCP74dK9qytG2Ujh"
+  },
+  "livePool": {
+    "status": "locked",
+    "fixtureId": 18143850,
+    "fixture": "Vietnam vs Myanmar",
+    "kickoff": "2026-07-18T12:00:00.000Z",
+    "cutoff": "2026-07-16T20:49:35.000Z",
+    "settleAfter": "2026-07-17T00:49:35.000Z",
+    "refundAfter": "2026-07-19T00:49:35.000Z",
+    "pool": "EsEffXpvKC7XS1StNZL26iNAUAiMmLpYbGpiC6CgPnsY",
+    "vault": "6bRJgkvfBjwvhRcPCj6xN4ZAKLKw8C5hir7u1gSzHmc6",
+    "vaultAmount": 2000000,
+    "entryFee": 1000000,
+    "entries": [
+      {
+        "owner": "GD3sR5EYPwtc1De3puPwbo2EM6Muar3hyugxV1BNSE8W",
+        "position": "DM5SdNHzZFqf1kPxQrrYUaxYqdCWmDYJMgMpC7J9LZwY",
+        "forecast": [2, 1, 6, 4]
+      },
+      {
+        "owner": "5dotMUbmS2CqHbXY7iGVEKbL1Jw1dHnTee1vndRFdF1t",
+        "position": "F1ZpC3ePe4R1cLjeVHfhz95Kfdz921hRG7f3LCYiGHfG",
+        "forecast": [1, 1, 5, 5]
+      }
+    ],
+    "transactions": {
+      "entrantFunding": "3Lk8dM36xPsNH3Cp74ApsUvDx5YQnCSStDzsvLJXY4HEYZtXm9D1hXRiCnFcaxKFqTwFW8w7fUprQhjbiRwFeVF4",
+      "createPool": "4CanZ9X9ehTSW2XoiA8Sbn8jQtCXrPRNHn45vamEafaxqPkiAKVytM8u3tzcpgXBpkBSVYtrjfuihaLKXAgP9D1L",
+      "creatorEntry": "483xT4imynTMojSNouGuSJH7xX3aTGgWxtoY33z4To4u27kdirhi2uJuodc2uQUALxbEHknfdHS7cy34hx99UY1n",
+      "entrantEntry": "3MhxvG8XznPcksDX4EEX6o1hXrHJ1TRAKo58CWJgjLY3f6ZjXFm5TqAUCDDnciwA3JJvKf1koa8vtu6PiegpA469"
+    }
+  }
+}

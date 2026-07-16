@@ -1,14 +1,30 @@
 # Devnet Settlement Runbook
 
-## Live pool
+## Settlement proof pool
+
+- Pool: `EsEffXpvKC7XS1StNZL26iNAUAiMmLpYbGpiC6CgPnsY`
+- Fixture: Vietnam vs Myanmar, TxLINE `18143850`
+- Kickoff: `2026-07-18T12:00:00Z`
+- Settlement opens: `2026-07-17T00:49:35Z`
+- Refund fallback: `2026-07-19T00:49:35Z`
+- Evidence record: `deployments/devnet-settlement-proof.json`
+
+The keeper should wait for TxLINE's `game_finalised` event even after the configured settlement
+time has passed. Extra time or penalties can make a match run long.
+
+## First pool timing note
 
 - Pool: `3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH`
 - Fixture: France vs England, TxLINE `18257865`
 - Settlement opens: `2026-07-19T01:00:00Z`
 - Refund fallback: `2026-07-20T01:00:00Z`
 
-The keeper should wait for TxLINE's `game_finalised` event even if the configured settlement
-time has passed. Extra time or penalties can make a match run long.
+> **Do not copy this pool's timing.** It used `settleAfter = kickoff + 4h`, but
+> TxLINE score proofs are anchored to the five-minute batch containing the selected
+> score record. A normal `game_finalised` proof can therefore predate that timestamp.
+> `scripts/seed-devnet-pool.ts` now closes entry ten minutes after creation, opens
+> settlement four hours after cutoff, retains the full 48-hour refund grace, and
+> accepts only fixtures with a six-hour post-kickoff finality margin.
 
 ## Keeper environment
 
@@ -23,7 +39,7 @@ export TXLINE_TOKEN_FILE=/absolute/path/to/.txline-token.json
 Then run:
 
 ```bash
-npm run keeper:settle -- --pool 3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH
+npm run keeper:settle -- --pool EsEffXpvKC7XS1StNZL26iNAUAiMmLpYbGpiC6CgPnsY
 ```
 
 For automatic monitoring, set `KEEPER_POOL_ADDRESSES` to the Pool address and run:
@@ -36,14 +52,15 @@ Before settlement eligibility it reports `wait`. After eligibility but before Tx
 `game_finalised`, it reports `pending-final`. It submits only after both gates pass.
 
 The keeper finds the final sequence, requests keys `1,2,7,8`, derives the proof's daily-root
-PDA, and submits `settle_pool`. Record the returned signature in `deployments/devnet.json`.
+PDA, and submits `settle_pool`. Record the returned signature in
+`deployments/devnet-settlement-proof.json`.
 
 The winning wallet then calls `claim_prize`; the second entrant's ignored local keypair is
 stored at `target/deploy/stamp-devnet-entrant-2.json` on this machine only. Use either the
 single-wallet command:
 
 ```bash
-npm run wallet:claim -- --pool 3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH \
+npm run wallet:claim -- --pool EsEffXpvKC7XS1StNZL26iNAUAiMmLpYbGpiC6CgPnsY \
   --keypair /absolute/path/to/winner.json --inspect
 ```
 
@@ -53,10 +70,10 @@ or the idempotent completion command, which settles if needed and claims only el
 unpaid winners among the supplied participant wallets:
 
 ```bash
-npm run keeper:finalize -- --pool 3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH \
+npm run keeper:finalize -- --pool EsEffXpvKC7XS1StNZL26iNAUAiMmLpYbGpiC6CgPnsY \
   --owner-keypair /absolute/path/to/creator.json \
   --owner-keypair target/deploy/stamp-devnet-entrant-2.json \
-  --record deployments/devnet.json
+  --record deployments/devnet-settlement-proof.json
 ```
 
 This tool does not grant the keeper payout authority. Each claim remains signed by its

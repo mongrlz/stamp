@@ -84,7 +84,7 @@ For the devnet proof run, the idempotent finalizer settles once TxLINE publishes
 ```bash
 npm run keeper:finalize -- --pool <POOL_PUBKEY> \
   --owner-keypair <FIRST_JSON> --owner-keypair <SECOND_JSON> \
-  --record deployments/devnet.json
+  --record deployments/devnet-settlement-proof.json
 ```
 
 `--record` atomically checkpoints confirmed settlement and claim evidence after each step,
@@ -113,5 +113,8 @@ making the operator command safe to resume after an RPC or process interruption.
 - TxLINE devnet oracle: `6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J`
 
 The production program is deployed on devnet. `deployments/devnet.json` records the deploy
-transaction, a real TxLINE v3 verification transaction, and the funded France–England pool
-that will complete its STAMP settlement after `game_finalised`.
+transaction, a real TxLINE v3 verification transaction, and the first funded France–England
+pool. `deployments/devnet-settlement-proof.json` records the corrected Vietnam–Myanmar proof
+pool whose settlement window opens before kickoff and remains live for 48 hours. That second
+artifact becomes the authoritative end-to-end settlement and claim record when finalization
+completes.
