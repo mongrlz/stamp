@@ -12,6 +12,7 @@ import { LIVE_POOL_ADDRESS, fetchLivePool, fetchReplay } from "./api.js";
 import { walletPoolAction, type BrowserPosition, type WalletPoolAction } from "./stamp-state.js";
 import type { PublicPool, ReplayResponse } from "./types.js";
 import { useStampWallet, WalletControl } from "./wallet.js";
+import { ReceiptCanvas } from "./receipt-canvas.js";
 
 type AppMode = "entry" | "replay" | "result";
 type AppView = "play" | "replay" | "receipts";
@@ -112,7 +113,7 @@ function useWalletPool(pool: PublicPool | null) {
   };
 }
 
-function Header({ view, onView }: { view: AppView; onView(value: AppView): void }) {
+function Header({ view, onView, onHowTo }: { view: AppView; onView(value: AppView): void; onHowTo(): void }) {
   return (
     <header className="stamp-header mx-auto flex w-full max-w-[1500px] items-center justify-between border-b border-ink px-5 py-5 md:px-8">
       <div className="stamp-brand flex min-w-0 items-baseline gap-5">
@@ -124,6 +125,7 @@ function Header({ view, onView }: { view: AppView; onView(value: AppView): void 
           <button className={`nav-link ${view === "play" ? "is-active" : ""}`} onClick={() => onView("play")} type="button">PLAY</button>
           <button className={`nav-link ${view === "replay" ? "is-active" : ""}`} onClick={() => onView("replay")} type="button">REPLAY</button>
           <button className={`nav-link ${view === "receipts" ? "is-active" : ""}`} onClick={() => onView("receipts")} type="button">RECEIPTS</button>
+          <button className="nav-link nav-link--how" onClick={onHowTo} type="button">HOW TO PLAY</button>
         </nav>
         <WalletControl />
       </div>
@@ -141,16 +143,22 @@ function MarketWire({ pool, replay }: { pool: PublicPool | null; replay: ReplayR
 
   const home = replay?.fixture?.participant1 ?? "FRANCE";
   const away = replay?.fixture?.participant2 ?? "ENGLAND";
+  const consensus = pool?.entries.length
+    ? [0, 1, 2, 3].map((index) => (
+      pool.entries.reduce((total, entry) => total + entry.forecast[index]!, 0) / pool.entries.length
+    ).toFixed(1)).join(" · ")
+    : "— · — · — · —";
   const wire = [
-    ["ACTIVE MARKET", "FRANCE — ENGLAND"],
-    ["POOL", pool ? `${pool.entryCount} / ${pool.maxEntries} ENTERED` : "SYNCING"],
-    ["VAULT", pool ? `${formatPaperAmount((BigInt(pool.entryFee) * BigInt(pool.entryCount)).toString())} TEST USDT` : "—"],
-    ["SETTLEMENT", pool ? formatCountdown(pool.settleAfter, now) : "—"],
-    ["STATUS", pool?.status.toUpperCase() ?? "CONNECTING"],
-    ["TXLINE", pool ? `FIXTURE ${pool.fixtureId}` : "PROOF FEED"],
+    ["MATCH", "FRANCE — ENGLAND"],
+    ["MARKET", "FINAL SCORE + CORNERS"],
+    ["STAMPS", pool ? `${pool.entryCount} / ${pool.maxEntries}` : "SYNCING"],
+    ["POOL", pool ? `${formatPaperAmount((BigInt(pool.entryFee) * BigInt(pool.entryCount)).toString())} TEST USDT` : "—"],
+    ["CROWD PICK", consensus],
+    ["SCORING", "GOALS ×3 · CORNERS ×1"],
+    ["SETTLES IN", pool ? formatCountdown(pool.settleAfter, now) : "—"],
+    ["MARKET STATUS", pool?.status.toUpperCase() ?? "CONNECTING"],
     ["PAPER REPLAY", replay ? `${home} — ${away}` : "LOADING"],
-    ["REPLAY", replay ? `${replay.frameCount} EVENTS · SEQ ${replay.finalSequence ?? replay.maxSequence}` : "LOADING"],
-    ["NETWORK", "SOLANA DEVNET"],
+    ["PROOF", "TXLINE → SOLANA DEVNET"],
   ];
 
   return (
@@ -171,6 +179,47 @@ function MarketWire({ pool, replay }: { pool: PublicPool | null; replay: ReplayR
         </div>
       </div>
     </section>
+  );
+}
+
+function HowToPlay({ onClose }: { onClose(): void }) {
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div className="how-overlay" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }} role="presentation">
+      <section aria-labelledby="how-title" aria-modal="true" className="how-dialog" role="dialog">
+        <div className="how-dialog__head">
+          <div><span>STAMP IN 10 SECONDS</span><h2 id="how-title">PICK IT. STAMP IT. PROVE IT.</h2></div>
+          <button aria-label="Close how to play" onClick={onClose} type="button">CLOSE ×</button>
+        </div>
+        <p className="how-dialog__lede">Predict the final goals and corners. The closest four-number fingerprint wins when TxLINE proves the match result.</p>
+        <ol className="how-steps">
+          <li><b>1</b><div><strong>PICK FOUR NUMBERS</strong><p>Home goals · away goals · home corners · away corners.</p></div></li>
+          <li><b>2</b><div><strong>STAMP BEFORE LOCK</strong><p>Your wallet signs one devnet entry and prints a permanent receipt.</p></div></li>
+          <li><b>3</b><div><strong>WATCH THE PROOF</strong><p>TxLINE supplies the final match fingerprint; STAMP anchors settlement on Solana.</p></div></li>
+          <li><b>4</b><div><strong>LOWEST DISTANCE WINS</strong><p>Goal misses cost 3 points. Corner misses cost 1. Exact is best.</p></div></li>
+        </ol>
+        <div className="how-example">
+          <span>EXAMPLE</span>
+          <strong>YOUR STAMP 2 · 1 · 6 · 4</strong>
+          <i>vs</i>
+          <strong>FINAL 2 · 1 · 5 · 4</strong>
+          <em>DISTANCE 1</em>
+        </div>
+        <div className="how-dialog__foot"><span>REPLAY MODE USES REAL MATCH DATA WITH PAPER FUNDS.</span><button className="primary-action physical-button" onClick={onClose} type="button">START STAMPING</button></div>
+      </section>
+    </div>
   );
 }
 
@@ -229,23 +278,23 @@ function PoolReceipt({ pool, owner }: { pool: PublicPool; owner: PublicKey | nul
   const entry = pool.entries.find(({ owner: entryOwner }) => entryOwner === owner?.toBase58())
     ?? pool.entries[0];
   return (
-    <article className="receipt pool-receipt" aria-label="Locked devnet pool receipt">
-      <div className="receipt__status"><StatusDot /> DEVNET · {pool.status.toUpperCase()}</div>
-      <h2>STAMP RECEIPT</h2>
-      <div className="receipt__rule" />
-      <div className="receipt__match">FRANCE<br />— ENGLAND</div>
-      <div className="receipt__rule" />
-      <div className="receipt__label">POOL</div>
-      <div className="receipt__value">{shortAddress(pool.address)}</div>
-      <div className="receipt__label">ENTRY FEE</div>
-      <div className="receipt__value">{formatPaperAmount(pool.entryFee)} TEST USDT</div>
-      <div className="receipt__rule" />
-      <div className="receipt__label">LOCKED STAMP</div>
-      <div className="receipt__fingerprint">{entry?.forecast.join(" · ") ?? "— · — · — · —"}</div>
-      <div className="receipt__legend">FRG · ENG · FRC · ENC</div>
-      <div className="barcode" aria-hidden="true" />
-      <div className="receipt__footer">TEST MODE · NO MAINNET FUNDS</div>
-    </article>
+    <ReceiptCanvas
+      ariaLabel="Locked devnet pool receipt"
+      barcodeSeed={pool.address}
+      details={[
+        { label: "Pool", value: shortAddress(pool.address) },
+        { label: "Entry fee", value: `${formatPaperAmount(pool.entryFee)} TEST USDT` },
+      ]}
+      fingerprint={entry?.forecast ?? ["—", "—", "—", "—"]}
+      fingerprintLabel="Locked stamp"
+      footer="TEST MODE · NO MAINNET FUNDS"
+      legend="FRG · ENG · FRC · ENC"
+      stamp={`POOL ${pool.status.toUpperCase()}`}
+      stampTone="blue"
+      status={`DEVNET · ${pool.status.toUpperCase()}`}
+      teams={["FRANCE", "ENGLAND"]}
+      title="STAMP RECEIPT"
+    />
   );
 }
 
@@ -373,29 +422,26 @@ function ArchiveReceipt({ id, owner, pool, replay }: { id: ReceiptId; owner: Pub
   const vector = live ? liveEntry?.forecast ?? [0, 0, 0, 0] : DEFAULT_STAMP;
   const actual = replay.finalFingerprint ?? [0, 0, 0, 0];
   return (
-    <article className="receipt archive-detail" aria-label={live ? "Live France England receipt" : "Belgium Senegal paper receipt"}>
-      <div className="receipt__status"><StatusDot green={!live} /> {live ? `DEVNET · ${pool.status.toUpperCase()}` : "PAPER RESULT · VERIFIED DATA"}</div>
-      <h2>STAMP RECEIPT</h2>
-      <div className="receipt__rule" />
-      <div className="receipt__match">{live ? <>FRANCE<br />— ENGLAND</> : <>BELGIUM<br />— SENEGAL</>}</div>
-      <div className="receipt__rule" />
-      <div className="receipt__label">YOUR FINGERPRINT</div>
-      <div className="receipt__fingerprint">{vector.join(" · ")}</div>
-      <div className="receipt__legend">P1G · P2G · P1C · P2C</div>
-      {!live && (
-        <>
-          <div className="receipt__rule" />
-          <div className="receipt__label">MATCH FINAL</div>
-          <div className="receipt__value">{actual.join(" · ")}</div>
-          <div className="receipt__stamp">MISSED BY {fingerprintDistance(vector, actual)}</div>
-          <div className="receipt__label">HYPOTHETICAL PAYOUT</div>
-          <div className="receipt__payout">+0 PAPER USDT</div>
-        </>
-      )}
-      {live && <div className="receipt__stamp is-blue">LOCKED ON DEVNET</div>}
-      <div className="barcode" aria-hidden="true" />
-      <div className="receipt__footer">{live ? shortAddress(pool.address) : `TxLINE SEQ ${replay.finalSequence}`}</div>
-    </article>
+    <ReceiptCanvas
+      ariaLabel={live ? "Live France England receipt" : "Belgium Senegal paper receipt"}
+      barcodeSeed={live ? pool.address : `${replay.fixtureId}-${replay.finalSequence}`}
+      details={live ? [
+        { label: "Pool", value: shortAddress(pool.address) },
+        { label: "Status", value: pool.status.toUpperCase(), accent: "green" },
+      ] : [
+        { label: "Match final", value: actual.join(" · "), accent: "green" },
+        { label: "Hypothetical payout", value: "+0 PAPER USDT", accent: "green" },
+      ]}
+      fingerprint={vector}
+      fingerprintLabel="Your fingerprint"
+      footer={live ? shortAddress(pool.address) : `TxLINE SEQ ${replay.finalSequence}`}
+      stamp={live ? "LOCKED ON DEVNET" : `MISSED BY ${fingerprintDistance(vector, actual)}`}
+      stampTone={live ? "blue" : "green"}
+      status={live ? `DEVNET · ${pool.status.toUpperCase()}` : "PAPER RESULT · VERIFIED DATA"}
+      statusTone={live ? "blue" : "green"}
+      teams={live ? ["FRANCE", "ENGLAND"] : ["BELGIUM", "SENEGAL"]}
+      title="STAMP RECEIPT"
+    />
   );
 }
 
@@ -504,34 +550,26 @@ function Receipt({
   const team1 = replay.fixture?.participant1 ?? `TEAM ${replay.participant1Id ?? 1}`;
   const team2 = replay.fixture?.participant2 ?? `TEAM ${replay.participant2Id ?? 2}`;
   return (
-    <article className="receipt" aria-label="Paper replay receipt">
-      <div className="receipt__status"><StatusDot green={mode === "result"} /> {mode === "result" ? "REPLAY COMPLETE" : "REPLAY · PAPER"}</div>
-      <h2>RECEIPT #18179550-P</h2>
-      <div className="receipt__rule" />
-      <div className="receipt__match">{team1}<br />— {team2}</div>
-      <div className="receipt__rule" />
-      <div className="receipt__label">YOUR STAMP</div>
-      <div className="receipt__fingerprint">{prediction.join(" · ")}</div>
-      <div className="receipt__legend">P1G · P2G · P1C · P2C</div>
-      <div className="receipt__rule" />
-      <div className="receipt__label">SEQUENCE</div>
-      <div className="receipt__value">{frame.sequence.toString().padStart(4, "0")} / {replay.finalSequence}</div>
-      <div className="receipt__label">MATCH CLOCK</div>
-      <div className="receipt__value">{formatClock(frame.clockSeconds)}</div>
-      {mode === "result" ? (
-        <>
-          <div className="receipt__stamp">PAPER RESULT</div>
-          <div className="receipt__label">DISTANCE</div>
-          <div className="receipt__result">{distance}</div>
-          <div className="receipt__label">HYPOTHETICAL PAYOUT</div>
-          <div className="receipt__payout">+{payout} PAPER USDT</div>
-        </>
-      ) : (
-        <div className="receipt__stamp is-blue">PAPER ENTRY</div>
-      )}
-      <div className="barcode" aria-hidden="true" />
-      <div className="receipt__footer">TxLINE · NO WALLET · NO STAKE</div>
-    </article>
+    <ReceiptCanvas
+      ariaLabel="Paper replay receipt"
+      barcodeSeed={`${replay.fixtureId}-${frame.sequence}-${prediction.join("-")}`}
+      details={mode === "result" ? [
+        { label: "Sequence", value: `${frame.sequence.toString().padStart(4, "0")} / ${replay.finalSequence}` },
+        { label: "Distance", value: String(distance ?? "—"), accent: "green" },
+        { label: "Hypothetical payout", value: `+${payout ?? "0"} PAPER USDT`, accent: "green" },
+      ] : [
+        { label: "Sequence", value: `${frame.sequence.toString().padStart(4, "0")} / ${replay.finalSequence}` },
+        { label: "Match clock", value: formatClock(frame.clockSeconds) },
+      ]}
+      fingerprint={prediction}
+      footer="TxLINE · NO WALLET · NO STAKE"
+      stamp={mode === "result" ? "PAPER RESULT" : "PAPER ENTRY"}
+      stampTone={mode === "result" ? "green" : "blue"}
+      status={mode === "result" ? "REPLAY COMPLETE" : "REPLAY · PAPER"}
+      statusTone={mode === "result" ? "green" : "blue"}
+      teams={[team1, team2]}
+      title="RECEIPT #18179550-P"
+    />
   );
 }
 
@@ -709,7 +747,7 @@ function ResultScreen({
   const payout = formatPaperAmount(mine.hypotheticalPayout);
 
   return (
-    <main className="mx-auto grid w-full max-w-[1500px] flex-1 grid-cols-1 gap-0 px-5 py-8 md:px-8 lg:grid-cols-[350px_minmax(0,1fr)_330px] lg:py-10">
+    <main className="result-shell mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 gap-0 px-5 py-7 md:px-8 lg:grid-cols-[minmax(250px,0.8fr)_minmax(500px,1.9fr)_minmax(250px,0.78fr)] lg:py-8">
       <div className="lg:pr-8"><Receipt distance={mine.distance} frame={frame} mode="result" payout={payout} prediction={prediction} replay={replay} /></div>
       <section className="border-ink py-8 lg:border-x lg:px-8 lg:py-0">
         <div className="text-center font-mono text-lg tracking-[0.08em]">{team1} {actual[0]} — {actual[1]} {team2}</div>
@@ -785,6 +823,7 @@ function ErrorScreen({ message, retry }: { message: string; retry(): void }) {
 
 export function App() {
   const [view, setView] = useState<AppView>("play");
+  const [showHowTo, setShowHowTo] = useState(false);
   const [replay, setReplay] = useState<ReplayResponse | null>(null);
   const [pool, setPool] = useState<PublicPool | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -921,13 +960,14 @@ export function App() {
 
   return (
     <div className="paper-app min-h-[100dvh] text-ink">
-      <Header onView={setView} view={view} />
+      <Header onHowTo={() => setShowHowTo(true)} onView={setView} view={view} />
       <MarketWire pool={pool} replay={replay} />
       {body}
       <footer className="mx-auto flex w-full max-w-[1500px] flex-wrap justify-between gap-3 border-t border-ink px-5 py-4 font-mono text-[0.65rem] tracking-[0.08em] md:px-8">
         <span>STAMP · TxLINE · SOLANA DEVNET</span>
         <span>PAPER REPLAY IS SIMULATION · MATCH DATA IS AUTHENTIC</span>
       </footer>
+      {showHowTo && <HowToPlay onClose={() => setShowHowTo(false)} />}
     </div>
   );
 }

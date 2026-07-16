@@ -35,8 +35,11 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100dvh;
+  overflow-x: clip;
   background: var(--color-paper);
 }
+
+#root { max-width: 100%; overflow-x: clip; }
 
 button,
 input,
@@ -104,6 +107,13 @@ a:focus-visible {
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.78);
   backdrop-filter: blur(18px);
 }
+
+.stamp-header,
+.market-wire,
+.play-shell,
+.replay-shell,
+.receipts-shell,
+.result-shell { min-width: 0; }
 
 .stamp-wordmark {
   font-family: var(--font-display);
@@ -650,6 +660,52 @@ a:focus-visible {
   transform: rotate(-0.12deg) translateZ(0);
 }
 
+.receipt--canvas {
+  width: 100%;
+  max-width: 430px;
+  margin-inline: auto;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  filter: none;
+  transform: none;
+  -webkit-mask: none;
+  mask: none;
+}
+
+.receipt--canvas::before,
+.receipt--canvas::after { content: none; }
+
+.receipt > .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.receipt-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #f6f0e5;
+  -webkit-mask:
+    linear-gradient(#000 0 0) center / calc(100% - 8px) calc(100% - 12px) no-repeat,
+    radial-gradient(circle at 50% 100%, #000 68%, transparent 72%) top / 13px 8px repeat-x,
+    radial-gradient(circle at 50% 0%, #000 68%, transparent 72%) bottom / 13px 8px repeat-x;
+  mask:
+    linear-gradient(#000 0 0) center / calc(100% - 8px) calc(100% - 12px) no-repeat,
+    radial-gradient(circle at 50% 100%, #000 68%, transparent 72%) top / 13px 8px repeat-x,
+    radial-gradient(circle at 50% 0%, #000 68%, transparent 72%) bottom / 13px 8px repeat-x;
+  filter:
+    drop-shadow(0 2px 1px rgb(255 255 255 / 0.72))
+    drop-shadow(12px 18px 11px rgb(65 48 26 / 0.3));
+  transform: rotate(-0.12deg) translateZ(0);
+}
+
 .receipt::before {
   position: absolute;
   inset: 0;
@@ -751,12 +807,16 @@ a:focus-visible {
 .result-title {
   margin: 1.4rem 0 0;
   font-family: var(--font-display);
-  font-size: clamp(4rem, 7.2vw, 7.4rem);
+  font-size: clamp(3.5rem, 5.4vw, 6.1rem);
   font-weight: 900;
   line-height: 0.82;
   letter-spacing: -0.055em;
   text-align: center;
 }
+
+.result-shell > * { min-width: 0; }
+.result-shell .receipt--canvas { max-width: 330px; }
+.result-shell .result-table { min-width: 0; }
 
 .result-title em { color: var(--color-green); font-style: normal; }
 .result-table { border-top: 1px solid var(--color-ink); }
@@ -799,6 +859,58 @@ a:focus-visible {
 .leader-row { display: grid; grid-template-columns: 2rem 1fr auto; gap: 0.7rem; align-items: center; padding: 0.7rem 0; font-size: 0.72rem; }
 .leader-row.is-me { color: var(--color-blue); }
 
+.how-overlay {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  overflow-y: auto;
+  background: rgb(24 24 20 / 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.how-dialog {
+  width: min(980px, 100%);
+  border: 2px solid var(--color-ink);
+  background:
+    radial-gradient(circle at 8% 3%, rgb(255 255 255 / 0.85), transparent 28%),
+    url("./assets/thermal-paper-v1.png") center / cover,
+    var(--color-paper);
+  box-shadow: 10px 12px 0 var(--color-ink), 0 30px 80px rgb(0 0 0 / 0.34);
+}
+
+.how-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.5rem 1.75rem 1.25rem;
+  border-bottom: 2px solid var(--color-ink);
+}
+
+.how-dialog__head span { color: var(--color-blue); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; }
+.how-dialog__head h2 { margin: 0.2rem 0 0; font-family: var(--font-display); font-size: clamp(2.8rem, 5vw, 5rem); line-height: 0.9; }
+.how-dialog__head button { flex: none; padding: 0.55rem 0.7rem; cursor: pointer; border: 1.5px solid var(--color-ink); background: transparent; font-family: var(--font-condensed); font-size: 1rem; }
+.how-dialog__lede { max-width: 760px; margin: 0; padding: 1.15rem 1.75rem; border-bottom: 1px dashed var(--color-ink); font-size: 0.92rem; line-height: 1.55; }
+
+.how-steps { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0; padding: 0; list-style: none; }
+.how-steps li { display: grid; min-width: 0; grid-template-columns: 2.2rem 1fr; gap: 0.75rem; padding: 1.2rem; border-right: 1px dashed rgb(24 24 20 / 0.56); }
+.how-steps li:last-child { border-right: 0; }
+.how-steps b { display: grid; width: 2.2rem; height: 2.2rem; place-items: center; border-radius: 50%; background: var(--color-blue); color: white; }
+.how-steps strong { display: block; font-family: var(--font-condensed); font-size: 1.3rem; letter-spacing: 0.03em; }
+.how-steps p { margin: 0.35rem 0 0; font-size: 0.7rem; line-height: 1.45; }
+
+.how-example { display: grid; grid-template-columns: auto 1fr auto 1fr auto; gap: 0.8rem; align-items: center; margin: 0 1.75rem; padding: 1rem 0; border-block: 1px solid var(--color-ink); }
+.how-example span { color: var(--color-blue); font-size: 0.67rem; letter-spacing: 0.1em; }
+.how-example strong { font-family: var(--font-condensed); font-size: 1.4rem; text-align: center; }
+.how-example i { font-size: 0.7rem; font-style: normal; }
+.how-example em { color: var(--color-green); font-family: var(--font-condensed); font-size: 1.45rem; font-style: normal; text-align: right; }
+.how-dialog__foot { display: grid; grid-template-columns: 1fr minmax(240px, 0.44fr); gap: 1.5rem; align-items: center; padding: 1.25rem 1.75rem 1.6rem; }
+.how-dialog__foot span { font-size: 0.67rem; line-height: 1.5; letter-spacing: 0.07em; }
+.how-dialog__foot .primary-action { min-height: 3.6rem; }
+
 @media (min-width: 1024px) {
   .play-shell > section,
   .replay-shell > section,
@@ -811,6 +923,32 @@ a:focus-visible {
   .receipts-shell > aside {
     background: radial-gradient(circle at 60% 35%, rgb(255 255 255 / 0.42), transparent 45%);
   }
+
+  .replay-shell > section { padding-top: 1.65rem !important; padding-bottom: 1.65rem !important; }
+  .replay-shell > aside { padding-top: 1.65rem !important; padding-bottom: 1.65rem !important; }
+  .replay-shell .match-title { font-size: clamp(3.8rem, 5.7vw, 6.8rem); }
+  .replay-shell .number-control__body { min-height: clamp(8rem, 10vw, 10.25rem); }
+  .replay-shell .number-control input { font-size: clamp(4.4rem, 6vw, 6.4rem); }
+}
+
+@media (min-width: 1024px) and (max-height: 800px) {
+  .play-shell > section,
+  .play-shell > aside { padding-top: 1.35rem !important; padding-bottom: 1.35rem !important; }
+  .play-shell .section-kicker { margin-bottom: 0.7rem; }
+  .play-shell .match-title { font-size: clamp(4rem, 6vw, 5.8rem); }
+  .play-shell .match-selector { margin-top: 0.9rem !important; }
+  .play-shell .match-selector__head { min-height: 2.4rem; }
+  .play-shell .match-selector__head span { padding: 0.55rem 0 0.4rem; }
+  .play-shell .match-option { min-height: 2.65rem; }
+  .play-shell .fingerprint-grid { margin-top: 1rem !important; }
+  .play-shell .number-control { gap: 0.35rem; }
+  .play-shell .number-control > span:first-child { min-height: 1.25rem; }
+  .play-shell .number-control__body { min-height: 8.2rem; grid-template-rows: minmax(5rem, 1fr) 2.6rem; }
+  .play-shell .number-control input { font-size: 4.4rem; }
+  .play-shell .primary-action,
+  .play-shell .danger-action { min-height: 4rem; }
+  .play-shell .pool-status { padding-bottom: 0.4rem; }
+  .play-shell .receipt--canvas { max-width: 315px; }
 }
 
 @media (max-width: 1100px) {
@@ -834,15 +972,19 @@ a:focus-visible {
   .comparison-grid > div:last-child { border-bottom: 0; }
   .event-row { grid-template-columns: 4rem 1fr; }
   .event-vector { grid-column: 2; }
-  .result-table { overflow-x: auto; }
-  .result-table__row { min-width: 620px; }
+  .result-table { overflow: hidden; }
+  .result-table__row { grid-template-columns: 1.05fr repeat(4, minmax(0, 1fr)); }
+  .result-table__row > * { min-width: 0; min-height: 3rem; padding: 0.3rem 0.15rem; }
+  .result-table__row > span:first-child { font-size: 0.54rem; line-height: 1.05; }
+  .result-table__row strong { font-size: 1.45rem; }
+  .result-table__row.is-label { font-size: 0.48rem; }
   .result-summary { grid-template-columns: 1fr; }
   .result-summary > div { border-right: 0; border-bottom: 1px dotted var(--color-ink); }
   .result-summary > div:last-child { border-bottom: 0; }
   .match-selector__head { grid-template-columns: 1fr auto; }
   .match-selector__head span:last-child { display: none; }
   .pool-metrics { grid-template-columns: 1fr 1fr; }
-  .receipt-filters { grid-template-columns: repeat(5, minmax(5.4rem, 1fr)); overflow-x: auto; }
+  .receipt-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: hidden; }
   .receipt-filters button { min-height: 3.45rem; font-size: 0.92rem; }
   .receipt-row { grid-template-columns: 1fr auto; gap: 1rem; min-height: 0; padding: 1.4rem 0; }
   .receipt-row > div { border-right: 0; }
@@ -852,6 +994,14 @@ a:focus-visible {
   .receipt-row > div:first-child strong { font-size: 2.2rem; }
   .mini-barcode { width: 4.5rem; grid-column: 2; grid-row: 2; }
   .transaction-notice { grid-template-columns: 1fr; }
+  .how-steps { grid-template-columns: 1fr 1fr; }
+  .how-steps li:nth-child(2) { border-right: 0; }
+  .how-steps li:nth-child(-n + 2) { border-bottom: 1px dashed rgb(24 24 20 / 0.56); }
+  .how-example { grid-template-columns: 1fr; text-align: left; }
+  .how-example strong,
+  .how-example em { text-align: left; }
+  .how-example i { display: none; }
+  .how-dialog__foot { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 480px) {
@@ -876,6 +1026,16 @@ a:focus-visible {
   .wallet-trigger { min-height: 2.25rem; padding: 0.4rem 0.5rem; font-size: 0.64rem; }
   .wallet-trigger__dot { display: none; }
   .wallet-menu { position: fixed; top: 3.8rem; right: 1rem; left: 1rem; width: auto; }
+  .how-overlay { padding: 0; place-items: stretch; }
+  .how-dialog { min-height: 100dvh; border: 0; box-shadow: none; }
+  .how-dialog__head,
+  .how-dialog__lede,
+  .how-dialog__foot { padding-inline: 1rem; }
+  .how-dialog__head { gap: 0.75rem; }
+  .how-dialog__head h2 { font-size: 2.7rem; }
+  .how-steps { grid-template-columns: 1fr; }
+  .how-steps li { border-right: 0; border-bottom: 1px dashed rgb(24 24 20 / 0.56); }
+  .how-example { margin-inline: 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
