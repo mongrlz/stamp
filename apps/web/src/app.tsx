@@ -152,12 +152,6 @@ function NumberControl({
     <label className="number-control">
       <span>{label}</span>
       <div className="number-control__body">
-        <button
-          aria-label={`Decrease ${label}`}
-          disabled={disabled || value <= 0}
-          onClick={() => onChange(Math.max(0, value - 1))}
-          type="button"
-        >−</button>
         <input
           aria-describedby={`${label.replaceAll(" ", "-")}-help`}
           disabled={disabled}
@@ -168,12 +162,20 @@ function NumberControl({
           type="number"
           value={value}
         />
-        <button
-          aria-label={`Increase ${label}`}
-          disabled={disabled || value >= max}
-          onClick={() => onChange(Math.min(max, value + 1))}
-          type="button"
-        >+</button>
+        <div className="number-control__actions">
+          <button
+            aria-label={`Decrease ${label}`}
+            disabled={disabled || value <= 0}
+            onClick={() => onChange(Math.max(0, value - 1))}
+            type="button"
+          >−</button>
+          <button
+            aria-label={`Increase ${label}`}
+            disabled={disabled || value >= max}
+            onClick={() => onChange(Math.min(max, value + 1))}
+            type="button"
+          >+</button>
+        </div>
       </div>
       <span className="sr-only" id={`${label.replaceAll(" ", "-")}-help`}>Choose a value from zero to {max}.</span>
     </label>
@@ -261,8 +263,9 @@ function PlayScreen({
         <div className="match-selector mt-7">
           <div className="match-selector__head"><strong>SELECT A MATCH</strong><span>TONIGHT</span><span>TOMORROW</span></div>
           <div className="match-option"><span>☆</span><strong>SPAIN — PORTUGAL</strong><time>20:00</time></div>
-          <div className="match-option is-selected"><span>●</span><strong>FRANCE — ENGLAND</strong><time>21:00</time></div>
+          <div className="match-option is-selected"><span>✓</span><strong>FRANCE — ENGLAND</strong><time>21:00</time></div>
           <div className="match-option"><span>☆</span><strong>GERMANY — ITALY</strong><time>22:00</time></div>
+          <div className="match-option"><span>☆</span><strong>NETHERLANDS — BELGIUM</strong><time>22:45</time></div>
         </div>
         <div className="mt-7 flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -390,7 +393,16 @@ function ReceiptsScreen({
         <p className="archive-subtitle">EVERY PICK. EVERY PROOF.</p>
         <div className="receipt-filters" role="group" aria-label="Receipt filters">
           {(["all", "live", "won", "missed", "paper"] as const).map((value) => (
-            <button className={filter === value ? "is-active" : ""} key={value} onClick={() => setFilter(value)} type="button">{value.toUpperCase()}</button>
+            <button
+              className={filter === value ? "is-active" : ""}
+              key={value}
+              onClick={() => {
+                setFilter(value);
+                const firstVisible = items.find((item) => value === "all" || item.kind === value || (value === "missed" && item.distance !== null && item.distance > 0));
+                if (firstVisible) setSelected(firstVisible.id);
+              }}
+              type="button"
+            >{value.toUpperCase()}</button>
           ))}
         </div>
         <div className="receipt-list">
@@ -534,7 +546,7 @@ function ReplayControls({
         <span>{formatClock(frame.clockSeconds)}</span>
         <span>{formatAction(frame.action)}</span>
       </div>
-      <div className="grid grid-cols-3 border-y border-ink">
+      <div className="transport-grid grid grid-cols-3">
         <button className="transport" onClick={() => onIndex(Math.max(0, index - 1))} type="button" aria-label="Previous replay event">PREV</button>
         <button className="transport is-primary" onClick={() => onPlaying(!playing)} type="button">{playing ? "PAUSE" : "PLAY"}</button>
         <button className="transport" onClick={() => onIndex(Math.min(replay.frames.length - 1, index + 1))} type="button" aria-label="Next replay event">NEXT</button>
@@ -573,7 +585,7 @@ function EntryWorkspace({
     setPrediction(next);
   };
   return (
-    <main className="mx-auto grid w-full max-w-[1500px] flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_390px]">
+    <main className="replay-shell mx-auto grid w-full max-w-[1500px] flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_390px]">
       <section className="min-w-0 border-ink px-5 py-8 md:px-8 lg:border-r lg:py-10">
         <div className="section-kicker"><StatusDot /> REPLAY · PAPER</div>
         <h1 className="match-title"><span>{team1}</span><i>—</i><span>{team2}</span></h1>
@@ -593,7 +605,7 @@ function EntryWorkspace({
               <NumberControl label={`${team2} CORNERS`} max={40} onChange={(value) => update(3, value)} value={prediction[3]} />
             </div>
             <div className="scoring-line">GOALS ×3 <span>·</span> CORNERS ×1 <span>·</span> LOWEST DISTANCE WINS</div>
-            <button className="primary-action mt-7" onClick={onStamp} type="button">STAMP MY PAPER RECEIPT</button>
+            <button className="primary-action physical-button mt-7" onClick={onStamp} type="button">STAMP MY PAPER RECEIPT</button>
           </div>
         ) : (
           <div className="pt-8">
@@ -673,8 +685,8 @@ function ResultScreen({
           <div><span>HYPOTHETICAL PAYOUT</span><strong>+{payout} PAPER USDT</strong></div>
         </div>
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <button className="secondary-action" onClick={onRestart} type="button">RESTART</button>
-          <a className="primary-action is-link" href={`https://explorer.solana.com/tx/${PROOF_SIGNATURE}?cluster=devnet`} rel="noreferrer" target="_blank">VIEW VERIFIED PROOF</a>
+          <button className="secondary-action physical-button" onClick={onRestart} type="button">RESTART</button>
+          <a className="primary-action physical-button is-link" href={`https://explorer.solana.com/tx/${PROOF_SIGNATURE}?cluster=devnet`} rel="noreferrer" target="_blank">VIEW VERIFIED PROOF</a>
         </div>
       </section>
       <aside className="pt-8 lg:pl-8 lg:pt-0">
@@ -722,7 +734,7 @@ function ErrorScreen({ message, retry }: { message: string; retry(): void }) {
         <div className="section-kicker"><StatusDot /> STAMP DATA UNAVAILABLE</div>
         <h1 className="font-display text-5xl font-black tracking-[-0.04em] md:text-7xl">THE DATA<br />DIDN&apos;T LOAD.</h1>
         <p className="mt-6 max-w-xl font-mono text-sm leading-relaxed">{message}. Start the STAMP API and try again; the interface never substitutes fabricated pool or match data.</p>
-        <button className="primary-action mt-7 max-w-sm" onClick={retry} type="button">RETRY STAMP</button>
+        <button className="primary-action physical-button mt-7 max-w-sm" onClick={retry} type="button">RETRY STAMP</button>
       </div>
     </main>
   );
