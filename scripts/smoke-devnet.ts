@@ -11,7 +11,14 @@ import { publicPool, settlementReceipt } from "../services/shared/src/pool.js";
 const RPC = "https://api.devnet.solana.com";
 
 type DeploymentRecord = {
-  program: { address: string };
+  program: {
+    address: string;
+    deploySignature?: string;
+    latestUpgradeSignature?: string;
+  };
+  txline?: {
+    verification?: { signature?: string };
+  };
   livePool: {
     status: string;
     pool: string;
@@ -150,7 +157,12 @@ async function main(): Promise<void> {
     });
   }
 
-  const signatures = transactionSignatures(deployment.livePool.transactions);
+  const signatures = [...new Set([
+    deployment.program.deploySignature,
+    deployment.program.latestUpgradeSignature,
+    deployment.txline?.verification?.signature,
+    ...transactionSignatures(deployment.livePool.transactions),
+  ].filter((value): value is string => typeof value === "string"))];
   assert(signatures.length > 0, "Deployment record contains no transaction signatures");
   const statuses = await connection.getSignatureStatuses(signatures, {
     searchTransactionHistory: true,

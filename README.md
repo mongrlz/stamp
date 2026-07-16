@@ -105,6 +105,7 @@ making the operator command safe to resume after an RPC or process interruption.
 - `STAMP-SPEC.md` — final product and scoring contract
 - `docs/ARCHITECTURE.md` — trust boundaries and transaction lifecycle
 - `docs/API.md` — route and operational contract
+- `docs/PRE-UI-COMPLETION-AUDIT.md` — requirement-by-requirement proof and remaining live gate
 - `docs/REPLAY-PAPER-MODE.md` — replay trust boundary and scoring behavior
 
 ## Programs
