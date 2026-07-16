@@ -1,8 +1,22 @@
 # STAMP Frontend Contract
 
-This document is the handoff boundary for the later UI pass. The browser imports the
-generated IDL and PDA helpers from `packages/stamp-sdk`; it never imports `packages/txline`
-or receives TxLINE credentials.
+This document defines the browser trust boundary. The implemented React interface reads the
+sanitized API for Play, Replay, and Receipts; it never imports the server TxLINE client or
+receives TxLINE credentials. The wallet transaction layer described below is the next UI phase
+and will import the generated IDL and PDA helpers from `packages/stamp-sdk`.
+
+## Implemented screens
+
+- **Play** renders the real funded France–England devnet pool, public entries, vault total,
+  settlement countdown, locked four-number STAMP, and physical receipt.
+- **Replay** records a local paper prediction and plays the authenticated Belgium–Senegal
+  archive through the contract scoring rules.
+- **Receipts** separates the real locked on-chain entry from the simulated paper result,
+  supports useful filters and empty states, and links to the appropriate Solana proof surface.
+
+All large controls, score tiles, paper edges, barcodes, and red/blue physical buttons are live
+HTML/CSS rather than raster UI. The concept PNGs under `assets/concepts` are design references,
+not runtime dependencies.
 
 ## Read model
 

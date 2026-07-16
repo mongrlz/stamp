@@ -25,6 +25,8 @@ There is no admin resolution path and the keeper cannot redirect funds.
 - responsive React paper-replay experience driven by a real archived TxLINE match
 - editable four-stat STAMP, event playback, physical receipt, deterministic paper leaderboard,
   and a link to the verified Solana proof
+- navigable Play, Replay, and Receipts surfaces with the real locked devnet pool, public
+  participant forecasts, settlement countdown, archive filters, and responsive receipt detail
 
 Paper replay never connects a wallet or moves funds. Its match sequence and final fingerprint
 are authentic; its entries, rankings, and payouts are explicitly hypothetical.
@@ -45,9 +47,10 @@ Start the API and web app together after configuring `.env` from `.env.example`:
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173`. The current demo replays Belgium–Senegal fixture `18179550`
-through 47 normalized milestones and settles the paper receipt against its authenticated
-`[3, 2, 4, 2]` final fingerprint.
+Open `http://127.0.0.1:5173`. Play reads the funded France–England devnet Pool directly.
+Replay runs Belgium–Senegal fixture `18179550` through 47 normalized milestones and settles
+the paper receipt against its authenticated `[3, 2, 4, 2]` final fingerprint. Receipts keeps
+the on-chain locked entry visibly distinct from the simulated paper result.
 
 Run the keeper after configuring `.env` from `.env.example`:
 

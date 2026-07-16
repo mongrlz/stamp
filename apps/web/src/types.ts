@@ -26,3 +26,36 @@ export type ReplayResponse = {
   frames: ReplayFrame[];
   fixture: ReplayFixture | null;
 };
+
+export type PublicPoolEntry = {
+  index: number;
+  owner: string;
+  forecast: MatchFingerprint;
+};
+
+export type PublicPool = {
+  address: string;
+  creator: string;
+  poolId: string;
+  fixtureId: string;
+  mint: string;
+  tokenProgram: string;
+  entryFee: string;
+  cutoffAt: string;
+  settleAfter: string;
+  refundAfter: string;
+  status: string;
+  maxEntries: number;
+  entryCount: number;
+  finalVector: MatchFingerprint;
+  winnerMask: number;
+  winnerCount: number;
+  winnersClaimed: number;
+  winningDistance: number;
+  prizeTotal: string;
+  claimedTotal: string;
+  proofTs: string;
+  settlementRoot: number[];
+  settler: string;
+  entries: PublicPoolEntry[];
+};

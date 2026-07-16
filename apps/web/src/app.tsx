@@ -6,10 +6,11 @@ import {
   type PaperEntry,
 } from "../../../packages/stamp-sdk/src/scoring.js";
 import type { MatchFingerprint, ReplayFrame } from "../../../packages/txline/src/replay.js";
-import { fetchReplay } from "./api.js";
-import type { ReplayResponse } from "./types.js";
+import { LIVE_POOL_ADDRESS, fetchLivePool, fetchReplay } from "./api.js";
+import type { PublicPool, ReplayResponse } from "./types.js";
 
 type AppMode = "entry" | "replay" | "result";
+type AppView = "play" | "replay" | "receipts";
 
 const DEFAULT_STAMP: MatchFingerprint = [3, 2, 5, 2];
 const PROOF_SIGNATURE = "42K7LbKD5zXPLDtXSkeM8E9haaV5z6fMGm8VFSKbKirLNf8jNC5vegPs6M5mzhVSf382RceoC76bvncoQ6v7DRsx";
@@ -41,17 +42,42 @@ function formatPaperAmount(baseUnits: string): string {
   return fraction ? `${whole}.${fraction}` : whole.toString();
 }
 
-function Header({ mode }: { mode: AppMode }) {
+function shortAddress(address: string): string {
+  return `${address.slice(0, 5)}…${address.slice(-4)}`;
+}
+
+function formatCountdown(target: string, now: number): string {
+  const seconds = Math.max(0, Number(target) - Math.floor(now / 1000));
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainder = seconds % 60;
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${remainder.toString().padStart(2, "0")}`;
+}
+
+function formatArchiveDate(timestamp: number | null): string {
+  if (timestamp === null) return "ARCHIVED MATCH";
+  const milliseconds = timestamp < 1_000_000_000_000 ? timestamp * 1_000 : timestamp;
+  const date = new Date(milliseconds);
+  if (Number.isNaN(date.getTime())) return "ARCHIVED MATCH";
+  return `${date.toLocaleDateString("en-US", {
+    day: "2-digit",
+    month: "short",
+    timeZone: "UTC",
+    year: "numeric",
+  }).toUpperCase()} · ARCHIVE`;
+}
+
+function Header({ view, onView }: { view: AppView; onView(value: AppView): void }) {
   return (
     <header className="mx-auto flex w-full max-w-[1500px] items-center justify-between border-b border-ink px-5 py-5 md:px-8">
       <div className="flex min-w-0 items-baseline gap-5">
         <div className="font-display text-[2.8rem] font-black leading-none tracking-[-0.06em] md:text-[3.4rem]">STAMP</div>
         <div className="hidden font-mono text-xs tracking-[0.12em] lg:block">PICK THE MATCH. KEEP THE RECEIPT.</div>
       </div>
-      <nav aria-label="Primary" className="flex items-center gap-5 font-condensed text-sm font-bold tracking-[0.08em] md:gap-9 md:text-base">
-        <button className="nav-link" type="button">PLAY</button>
-        <button className={`nav-link ${mode !== "entry" ? "is-active" : ""}`} type="button">REPLAY</button>
-        <button className="nav-link hidden sm:block" type="button">RECEIPTS</button>
+      <nav aria-label="Primary" className="flex items-center gap-3 font-condensed text-xs font-bold tracking-[0.05em] sm:gap-5 sm:text-sm md:gap-9 md:text-base md:tracking-[0.08em]">
+        <button className={`nav-link ${view === "play" ? "is-active" : ""}`} onClick={() => onView("play")} type="button">PLAY</button>
+        <button className={`nav-link ${view === "replay" ? "is-active" : ""}`} onClick={() => onView("replay")} type="button">REPLAY</button>
+        <button className={`nav-link ${view === "receipts" ? "is-active" : ""}`} onClick={() => onView("receipts")} type="button">RECEIPTS</button>
       </nav>
     </header>
   );
@@ -103,6 +129,192 @@ function NumberControl({
       </div>
       <span className="sr-only" id={`${label.replaceAll(" ", "-")}-help`}>Choose a value from zero to {max}.</span>
     </label>
+  );
+}
+
+function PoolReceipt({ pool }: { pool: PublicPool }) {
+  const entry = pool.entries[0];
+  return (
+    <article className="receipt pool-receipt" aria-label="Locked devnet pool receipt">
+      <div className="receipt__status"><StatusDot /> DEVNET · {pool.status.toUpperCase()}</div>
+      <h2>STAMP RECEIPT</h2>
+      <div className="receipt__rule" />
+      <div className="receipt__match">FRANCE<br />— ENGLAND</div>
+      <div className="receipt__rule" />
+      <div className="receipt__label">POOL</div>
+      <div className="receipt__value">{shortAddress(pool.address)}</div>
+      <div className="receipt__label">ENTRY FEE</div>
+      <div className="receipt__value">{formatPaperAmount(pool.entryFee)} TEST USDT</div>
+      <div className="receipt__rule" />
+      <div className="receipt__label">LOCKED STAMP</div>
+      <div className="receipt__fingerprint">{entry?.forecast.join(" · ") ?? "— · — · — · —"}</div>
+      <div className="receipt__legend">FRG · ENG · FRC · ENC</div>
+      <div className="barcode" aria-hidden="true" />
+      <div className="receipt__footer">TEST MODE · NO MAINNET FUNDS</div>
+    </article>
+  );
+}
+
+function PlayScreen({
+  pool,
+  onReceipts,
+}: {
+  pool: PublicPool;
+  onReceipts(): void;
+}) {
+  const locked = pool.status !== "open";
+  const entry = pool.entries[0];
+  const [prediction, setPrediction] = useState<MatchFingerprint>(entry?.forecast ?? DEFAULT_STAMP);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 1_000);
+    return () => window.clearInterval(interval);
+  }, []);
+  useEffect(() => {
+    if (entry) setPrediction(entry.forecast);
+  }, [entry]);
+  const update = (index: number, value: number) => {
+    const next = [...prediction] as MatchFingerprint;
+    next[index] = value;
+    setPrediction(next);
+  };
+  return (
+    <main className="play-shell mx-auto grid w-full max-w-[1500px] flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_430px]">
+      <section className="min-w-0 border-ink px-5 py-8 md:px-8 lg:border-r lg:py-10">
+        <div className="section-kicker"><StatusDot /> PLAY · DEVNET</div>
+        <h1 className="match-title"><span>FRANCE</span><i>—</i><span>ENGLAND</span></h1>
+        <div className="match-selector mt-7">
+          <div className="match-selector__head"><strong>SELECT A MATCH</strong><span>TONIGHT</span><span>TOMORROW</span></div>
+          <div className="match-option"><span>☆</span><strong>SPAIN — PORTUGAL</strong><time>20:00</time></div>
+          <div className="match-option is-selected"><span>●</span><strong>FRANCE — ENGLAND</strong><time>21:00</time></div>
+          <div className="match-option"><span>☆</span><strong>GERMANY — ITALY</strong><time>22:00</time></div>
+        </div>
+        <div className="mt-7 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="font-mono text-sm tracking-[0.08em] text-blue">{locked ? "YOUR LOCKED STAMP" : "PICK THE FINAL FINGERPRINT"}</div>
+            <div className="mt-2 font-mono text-xs">GOALS ×3 · CORNERS ×1 · LOWEST DISTANCE WINS</div>
+          </div>
+          <div className="font-mono text-xs text-green">TXLINE FIXTURE {pool.fixtureId}</div>
+        </div>
+        <div className="fingerprint-grid mt-7">
+          <NumberControl disabled={locked} label="FRANCE GOALS" max={20} onChange={(value) => update(0, value)} value={prediction[0]} />
+          <NumberControl disabled={locked} label="ENGLAND GOALS" max={20} onChange={(value) => update(1, value)} value={prediction[1]} />
+          <NumberControl disabled={locked} label="FRANCE CORNERS" max={40} onChange={(value) => update(2, value)} value={prediction[2]} />
+          <NumberControl disabled={locked} label="ENGLAND CORNERS" max={40} onChange={(value) => update(3, value)} value={prediction[3]} />
+        </div>
+        <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_0.38fr]">
+          <button className="primary-action physical-button" onClick={onReceipts} type="button">{locked ? "VIEW LOCKED RECEIPT" : "STAMP MY RECEIPT"}</button>
+          <button className="danger-action physical-button" disabled={locked} onClick={() => setPrediction(DEFAULT_STAMP)} type="button">{locked ? "POOL LOCKED" : "RESET PICK"}</button>
+        </div>
+      </section>
+      <aside className="space-y-7 px-5 py-8 md:px-8 lg:py-10">
+        <div className="pool-status">
+          <div className="section-kicker"><StatusDot green /> POOL STATUS</div>
+          <div className="pool-metrics">
+            <div><strong>{pool.entryCount}</strong><span>OF {pool.maxEntries}<br />ENTERED</span></div>
+            <div><strong>{formatPaperAmount((BigInt(pool.entryFee) * BigInt(pool.entryCount)).toString())}</strong><span>TEST USDT<br />IN VAULT</span></div>
+          </div>
+          <div className="pool-lock"><span>SETTLEMENT OPENS</span><strong>{formatCountdown(pool.settleAfter, now)}</strong><em>DEVNET · TEST FUNDS</em></div>
+          <div className="participant-list">
+            <div className="font-mono text-xs tracking-[0.08em]">POOL PARTICIPANTS</div>
+            {pool.entries.map((item) => (
+              <div className="participant-row" key={item.owner}>
+                <span>{item.index + 1}</span><strong>{shortAddress(item.owner)}</strong><em>{item.forecast.join("–")}</em>
+              </div>
+            ))}
+          </div>
+        </div>
+        <PoolReceipt pool={pool} />
+      </aside>
+    </main>
+  );
+}
+
+type ReceiptFilter = "all" | "live" | "won" | "missed" | "paper";
+type ReceiptId = "live-france" | "paper-belgium";
+
+function ArchiveReceipt({ id, pool, replay }: { id: ReceiptId; pool: PublicPool; replay: ReplayResponse }) {
+  const live = id === "live-france";
+  const vector = live ? pool.entries[0]?.forecast ?? [0, 0, 0, 0] : DEFAULT_STAMP;
+  const actual = replay.finalFingerprint ?? [0, 0, 0, 0];
+  return (
+    <article className="receipt archive-detail" aria-label={live ? "Live France England receipt" : "Belgium Senegal paper receipt"}>
+      <div className="receipt__status"><StatusDot green={!live} /> {live ? `DEVNET · ${pool.status.toUpperCase()}` : "PAPER RESULT · VERIFIED DATA"}</div>
+      <h2>STAMP RECEIPT</h2>
+      <div className="receipt__rule" />
+      <div className="receipt__match">{live ? <>FRANCE<br />— ENGLAND</> : <>BELGIUM<br />— SENEGAL</>}</div>
+      <div className="receipt__rule" />
+      <div className="receipt__label">YOUR FINGERPRINT</div>
+      <div className="receipt__fingerprint">{vector.join(" · ")}</div>
+      <div className="receipt__legend">P1G · P2G · P1C · P2C</div>
+      {!live && (
+        <>
+          <div className="receipt__rule" />
+          <div className="receipt__label">MATCH FINAL</div>
+          <div className="receipt__value">{actual.join(" · ")}</div>
+          <div className="receipt__stamp">MISSED BY {fingerprintDistance(vector, actual)}</div>
+          <div className="receipt__label">HYPOTHETICAL PAYOUT</div>
+          <div className="receipt__payout">+0 PAPER USDT</div>
+        </>
+      )}
+      {live && <div className="receipt__stamp is-blue">LOCKED ON DEVNET</div>}
+      <div className="barcode" aria-hidden="true" />
+      <div className="receipt__footer">{live ? shortAddress(pool.address) : `TxLINE SEQ ${replay.finalSequence}`}</div>
+    </article>
+  );
+}
+
+function ReceiptsScreen({
+  pool,
+  replay,
+  onReplay,
+}: {
+  pool: PublicPool;
+  replay: ReplayResponse;
+  onReplay(): void;
+}) {
+  const [filter, setFilter] = useState<ReceiptFilter>("all");
+  const [selected, setSelected] = useState<ReceiptId>("live-france");
+  const items = [
+    { id: "live-france" as const, match: "FRANCE — ENGLAND", fingerprint: pool.entries[0]?.forecast ?? [0, 0, 0, 0], status: pool.status.toUpperCase(), kind: "live" as const, distance: null },
+    { id: "paper-belgium" as const, match: "BELGIUM — SENEGAL", fingerprint: DEFAULT_STAMP, status: "PAPER", kind: "paper" as const, distance: fingerprintDistance(DEFAULT_STAMP, replay.finalFingerprint!) },
+  ];
+  const visible = items.filter((item) => filter === "all" || item.kind === filter || (filter === "missed" && item.distance !== null && item.distance > 0));
+  const selectedLive = selected === "live-france";
+  const proofHref = selectedLive
+    ? `https://explorer.solana.com/address/${LIVE_POOL_ADDRESS}?cluster=devnet`
+    : `https://explorer.solana.com/tx/${PROOF_SIGNATURE}?cluster=devnet`;
+  return (
+    <main className="receipts-shell mx-auto grid w-full max-w-[1500px] flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_430px]">
+      <section className="min-w-0 border-ink px-5 py-8 md:px-8 lg:border-r lg:py-10">
+        <h1 className="archive-title">MY RECEIPTS</h1>
+        <p className="archive-subtitle">EVERY PICK. EVERY PROOF.</p>
+        <div className="receipt-filters" role="group" aria-label="Receipt filters">
+          {(["all", "live", "won", "missed", "paper"] as const).map((value) => (
+            <button className={filter === value ? "is-active" : ""} key={value} onClick={() => setFilter(value)} type="button">{value.toUpperCase()}</button>
+          ))}
+        </div>
+        <div className="receipt-list">
+          {visible.map((item) => (
+            <button className={`receipt-row ${selected === item.id ? "is-selected" : ""}`} key={item.id} onClick={() => setSelected(item.id)} type="button">
+              <div><strong>{item.match}</strong><small>{item.id === "live-france" ? "JUL 18, 2026 · 21:00 UTC" : formatArchiveDate(replay.startTime)}</small></div>
+              <div><span>FINGERPRINT</span><strong>{item.fingerprint.join("–")}</strong></div>
+              <div><span>STATUS</span><strong className={item.kind === "paper" ? "text-blue" : "text-green"}>{item.status}</strong></div>
+              <div><span>DISTANCE</span><strong>{item.distance ?? "—"}</strong></div>
+              <div className="mini-barcode"><span aria-hidden="true" /><small>#{item.id === "live-france" ? "1047" : "1046"}</small></div>
+            </button>
+          ))}
+          {visible.length === 0 && (
+            <div className="archive-empty"><strong>NO RECEIPTS HERE YET.</strong><span>This filter will fill when a matching STAMP settles.</span></div>
+          )}
+        </div>
+      </section>
+      <aside className="space-y-4 px-5 py-8 md:px-8 lg:py-10">
+        <ArchiveReceipt id={selected} pool={pool} replay={replay} />
+        <a className="primary-action physical-button is-link" href={proofHref} rel="noreferrer" target="_blank">{selectedLive ? "VIEW DEVNET POOL" : "VIEW SOLANA PROOF"}</a>
+        <button className="secondary-action physical-button" onClick={onReplay} type="button">OPEN PAPER REPLAY</button>
+      </aside>
+    </main>
   );
 }
 
@@ -394,17 +606,19 @@ function ErrorScreen({ message, retry }: { message: string; retry(): void }) {
   return (
     <main className="mx-auto flex w-full max-w-[1500px] flex-1 items-center px-5 py-16 md:px-8">
       <div className="max-w-2xl border-y border-ink py-10">
-        <div className="section-kicker"><StatusDot /> REPLAY UNAVAILABLE</div>
-        <h1 className="font-display text-5xl font-black tracking-[-0.04em] md:text-7xl">THE ARCHIVE<br />DIDN&apos;T LOAD.</h1>
-        <p className="mt-6 max-w-xl font-mono text-sm leading-relaxed">{message}. Start the STAMP API and try again; paper mode never substitutes fabricated match data.</p>
-        <button className="primary-action mt-7 max-w-sm" onClick={retry} type="button">RETRY REPLAY</button>
+        <div className="section-kicker"><StatusDot /> STAMP DATA UNAVAILABLE</div>
+        <h1 className="font-display text-5xl font-black tracking-[-0.04em] md:text-7xl">THE DATA<br />DIDN&apos;T LOAD.</h1>
+        <p className="mt-6 max-w-xl font-mono text-sm leading-relaxed">{message}. Start the STAMP API and try again; the interface never substitutes fabricated pool or match data.</p>
+        <button className="primary-action mt-7 max-w-sm" onClick={retry} type="button">RETRY STAMP</button>
       </div>
     </main>
   );
 }
 
 export function App() {
+  const [view, setView] = useState<AppView>("play");
   const [replay, setReplay] = useState<ReplayResponse | null>(null);
+  const [pool, setPool] = useState<PublicPool | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadKey, setLoadKey] = useState(0);
   const [mode, setMode] = useState<AppMode>("entry");
@@ -415,10 +629,13 @@ export function App() {
   useEffect(() => {
     const controller = new AbortController();
     setError(null);
-    fetchReplay(controller.signal)
-      .then((value) => setReplay(value))
+    Promise.all([fetchReplay(controller.signal), fetchLivePool(controller.signal)])
+      .then(([nextReplay, nextPool]) => {
+        setReplay(nextReplay);
+        setPool(nextPool);
+      })
       .catch((reason: unknown) => {
-        if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Unknown replay error");
+        if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Unknown STAMP data error");
       });
     return () => controller.abort();
   }, [loadKey]);
@@ -438,6 +655,10 @@ export function App() {
     return () => window.clearTimeout(timeout);
   }, [frameIndex, mode, playing, replay]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [mode, view]);
+
   const restart = useCallback(() => {
     setMode("entry");
     setFrameIndex(0);
@@ -446,7 +667,9 @@ export function App() {
 
   const body = useMemo(() => {
     if (error) return <ErrorScreen message={error} retry={() => setLoadKey((value) => value + 1)} />;
-    if (!replay) return <LoadingScreen />;
+    if (!replay || !pool) return <LoadingScreen />;
+    if (view === "play") return <PlayScreen onReceipts={() => setView("receipts")} pool={pool} />;
+    if (view === "receipts") return <ReceiptsScreen onReplay={() => { restart(); setView("replay"); }} pool={pool} replay={replay} />;
     if (mode === "result") return <ResultScreen onRestart={restart} prediction={prediction} replay={replay} />;
     return (
       <EntryWorkspace
@@ -472,11 +695,11 @@ export function App() {
         setPrediction={setPrediction}
       />
     );
-  }, [error, frameIndex, mode, playing, prediction, replay, restart]);
+  }, [error, frameIndex, mode, playing, pool, prediction, replay, restart, view]);
 
   return (
     <div className="paper-app min-h-[100dvh] text-ink">
-      <Header mode={mode} />
+      <Header onView={setView} view={view} />
       {body}
       <footer className="mx-auto flex w-full max-w-[1500px] flex-wrap justify-between gap-3 border-t border-ink px-5 py-4 font-mono text-[0.65rem] tracking-[0.08em] md:px-8">
         <span>STAMP · TxLINE · SOLANA DEVNET</span>
