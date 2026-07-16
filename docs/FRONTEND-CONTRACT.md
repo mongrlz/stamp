@@ -2,8 +2,8 @@
 
 This document defines the browser trust boundary. The implemented React interface reads the
 sanitized API for Play, Replay, and Receipts; it never imports the server TxLINE client or
-receives TxLINE credentials. The wallet transaction layer described below is the next UI phase
-and will import the generated IDL and PDA helpers from `packages/stamp-sdk`.
+receives TxLINE credentials. The wallet layer uses direct Wallet Standard discovery and adapts
+the selected devnet account to Anchor's signing interface; keys remain inside the wallet.
 
 ## Implemented screens
 
@@ -17,6 +17,22 @@ and will import the generated IDL and PDA helpers from `packages/stamp-sdk`.
 All large controls, score tiles, paper edges, barcodes, and red/blue physical buttons are live
 HTML/CSS rather than raster UI. The concept PNGs under `assets/concepts` are design references,
 not runtime dependencies.
+
+## Implemented wallet boundary
+
+- Wallets are discovered through `@wallet-standard/app`; STAMP does not depend on a generic
+  wallet modal or vendor-specific injected global.
+- Only wallets advertising devnet, `standard:connect`, and `solana:signTransaction` are shown.
+- Silent reconnect remembers only the wallet name. Account changes and external disconnects
+  arrive through `standard:events` when the wallet supports it.
+- Legacy transactions are serialized for the wallet and deserialized after signing. STAMP never
+  reads or stores secret keys.
+- Create, enter, claim, and refund instruction builders are covered by unit tests against the
+  committed IDL and canonical PDA/ATA derivations.
+- Play and Receipts expose enter/claim/refund only when Pool status, entry ownership, winner mask,
+  and Position payment state permit that exact action. The current full pool remains view-only.
+- Anchor/SPL instruction code is lazy-loaded only after connection. The production build splits
+  large vendor modules into cacheable chunks rather than one blocking application bundle.
 
 ## Read model
 

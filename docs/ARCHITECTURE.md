@@ -10,6 +10,12 @@
 | Keeper | read replay/API, fetch proof, pay settlement fee | modify pool rules, forge final vector, redirect payout |
 | Browser UI | build wallet transactions, read public state | receive TxLINE credentials or sign as keeper |
 
+The browser discovers Wallet Standard providers directly. A compatible wallet signs serialized
+Solana transactions inside its own extension or app; STAMP receives only the signed transaction.
+Create/enter/claim/refund builders pin the committed program ID, standard SPL Token program,
+canonical Pool/Position/Vault PDAs, and deterministic associated token accounts. UI action gates
+mirror on-chain state but never replace program enforcement.
+
 ## Replay paper mode
 
 The browser requests a normalized historical match from the read-only API. TxLINE credentials,

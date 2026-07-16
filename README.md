@@ -27,6 +27,8 @@ There is no admin resolution path and the keeper cannot redirect funds.
   and a link to the verified Solana proof
 - navigable Play, Replay, and Receipts surfaces with the real locked devnet pool, public
   participant forecasts, settlement countdown, archive filters, and responsive receipt detail
+- headless Wallet Standard discovery with a custom STAMP connector and browser-signed builders
+  for create, enter, claim, and refund instructions; no private key reaches STAMP
 
 Paper replay never connects a wallet or moves funds. Its match sequence and final fingerprint
 are authentic; its entries, rankings, and payouts are explicitly hypothetical.
@@ -95,6 +97,8 @@ making the operator command safe to resume after an RPC or process interruption.
 - `packages/txline/src` — private server/keeper TxLINE adapter
 - `packages/stamp-sdk/src` — wallet-facing PDA helpers and generated IDL
 - `apps/web/src` — responsive paper replay, receipt, results, and proof UI
+- `apps/web/src/wallet.tsx` — direct Wallet Standard discovery, connection, and Anchor signer adapter
+- `apps/web/src/stamp-client.ts` — lazy-loaded STAMP instruction builders and state-gated senders
 - `services/keeper/src/settle.ts` — permissionless settlement submitter
 - `services/keeper/src/daemon.ts` — idempotent pool watcher, settlement, and refund worker
 - `services/api/src` — credential-safe public read/SSE service

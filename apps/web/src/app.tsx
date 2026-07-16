@@ -1,3 +1,5 @@
+import type { Program } from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -7,10 +9,17 @@ import {
 } from "../../../packages/stamp-sdk/src/scoring.js";
 import type { MatchFingerprint, ReplayFrame } from "../../../packages/txline/src/replay.js";
 import { LIVE_POOL_ADDRESS, fetchLivePool, fetchReplay } from "./api.js";
+import { walletPoolAction, type BrowserPosition, type WalletPoolAction } from "./stamp-state.js";
 import type { PublicPool, ReplayResponse } from "./types.js";
+import { useStampWallet, WalletControl } from "./wallet.js";
 
 type AppMode = "entry" | "replay" | "result";
 type AppView = "play" | "replay" | "receipts";
+type TransactionState = {
+  phase: "idle" | "signing" | "confirmed" | "error";
+  message: string;
+  signature?: string;
+};
 
 const DEFAULT_STAMP: MatchFingerprint = [3, 2, 5, 2];
 const PROOF_SIGNATURE = "42K7LbKD5zXPLDtXSkeM8E9haaV5z6fMGm8VFSKbKirLNf8jNC5vegPs6M5mzhVSf382RceoC76bvncoQ6v7DRsx";
@@ -67,18 +76,57 @@ function formatArchiveDate(timestamp: number | null): string {
   }).toUpperCase()} · ARCHIVE`;
 }
 
+function useWalletPool(pool: PublicPool | null) {
+  const { anchorWallet, connection, publicKey: owner } = useStampWallet();
+  const [program, setProgram] = useState<Program | null>(null);
+  const [position, setPosition] = useState<BrowserPosition | null>(null);
+  const [positionError, setPositionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    setProgram(null);
+    setPosition(null);
+    setPositionError(null);
+    if (!anchorWallet || !owner || !pool) return () => { active = false; };
+    import("./stamp-client.js")
+      .then(async ({ createBrowserProgram, fetchWalletPosition }) => {
+        const nextProgram = createBrowserProgram(connection, anchorWallet);
+        const nextPosition = await fetchWalletPosition(nextProgram, new PublicKey(pool.address), owner);
+        if (active) {
+          setProgram(nextProgram);
+          setPosition(nextPosition);
+        }
+      })
+      .catch((reason: unknown) => {
+        if (active) setPositionError(reason instanceof Error ? reason.message : "Position lookup failed");
+      });
+    return () => { active = false; };
+  }, [anchorWallet, connection, owner, pool]);
+
+  return {
+    action: pool ? walletPoolAction(pool, owner, position) : "connect" as WalletPoolAction,
+    owner,
+    position,
+    positionError,
+    program,
+  };
+}
+
 function Header({ view, onView }: { view: AppView; onView(value: AppView): void }) {
   return (
-    <header className="mx-auto flex w-full max-w-[1500px] items-center justify-between border-b border-ink px-5 py-5 md:px-8">
-      <div className="flex min-w-0 items-baseline gap-5">
-        <div className="font-display text-[2.8rem] font-black leading-none tracking-[-0.06em] md:text-[3.4rem]">STAMP</div>
+    <header className="stamp-header mx-auto flex w-full max-w-[1500px] items-center justify-between border-b border-ink px-5 py-5 md:px-8">
+      <div className="stamp-brand flex min-w-0 items-baseline gap-5">
+        <div className="stamp-wordmark font-display text-[2.8rem] font-black leading-none tracking-[-0.06em] md:text-[3.4rem]">STAMP</div>
         <div className="hidden font-mono text-xs tracking-[0.12em] lg:block">PICK THE MATCH. KEEP THE RECEIPT.</div>
       </div>
-      <nav aria-label="Primary" className="flex items-center gap-3 font-condensed text-xs font-bold tracking-[0.05em] sm:gap-5 sm:text-sm md:gap-9 md:text-base md:tracking-[0.08em]">
-        <button className={`nav-link ${view === "play" ? "is-active" : ""}`} onClick={() => onView("play")} type="button">PLAY</button>
-        <button className={`nav-link ${view === "replay" ? "is-active" : ""}`} onClick={() => onView("replay")} type="button">REPLAY</button>
-        <button className={`nav-link ${view === "receipts" ? "is-active" : ""}`} onClick={() => onView("receipts")} type="button">RECEIPTS</button>
-      </nav>
+      <div className="stamp-header-actions flex items-center gap-3 sm:gap-5 md:gap-8">
+        <nav aria-label="Primary" className="stamp-nav flex items-center gap-3 font-condensed text-xs font-bold tracking-[0.05em] sm:gap-5 sm:text-sm md:gap-9 md:text-base md:tracking-[0.08em]">
+          <button className={`nav-link ${view === "play" ? "is-active" : ""}`} onClick={() => onView("play")} type="button">PLAY</button>
+          <button className={`nav-link ${view === "replay" ? "is-active" : ""}`} onClick={() => onView("replay")} type="button">REPLAY</button>
+          <button className={`nav-link ${view === "receipts" ? "is-active" : ""}`} onClick={() => onView("receipts")} type="button">RECEIPTS</button>
+        </nav>
+        <WalletControl />
+      </div>
     </header>
   );
 }
@@ -132,8 +180,9 @@ function NumberControl({
   );
 }
 
-function PoolReceipt({ pool }: { pool: PublicPool }) {
-  const entry = pool.entries[0];
+function PoolReceipt({ pool, owner }: { pool: PublicPool; owner: PublicKey | null }) {
+  const entry = pool.entries.find(({ owner: entryOwner }) => entryOwner === owner?.toBase58())
+    ?? pool.entries[0];
   return (
     <article className="receipt pool-receipt" aria-label="Locked devnet pool receipt">
       <div className="receipt__status"><StatusDot /> DEVNET · {pool.status.toUpperCase()}</div>
@@ -156,14 +205,23 @@ function PoolReceipt({ pool }: { pool: PublicPool }) {
 }
 
 function PlayScreen({
+  action,
+  owner,
   pool,
   onReceipts,
+  onWalletAction,
+  transaction,
 }: {
+  action: WalletPoolAction;
+  owner: PublicKey | null;
   pool: PublicPool;
   onReceipts(): void;
+  onWalletAction(prediction: MatchFingerprint): void;
+  transaction: TransactionState;
 }) {
   const locked = pool.status !== "open";
-  const entry = pool.entries[0];
+  const entry = pool.entries.find(({ owner: entryOwner }) => entryOwner === owner?.toBase58())
+    ?? pool.entries[0];
   const [prediction, setPrediction] = useState<MatchFingerprint>(entry?.forecast ?? DEFAULT_STAMP);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -178,6 +236,23 @@ function PlayScreen({
     next[index] = value;
     setPrediction(next);
   };
+  const sendsTransaction = action === "enter" || action === "claim" || action === "refund";
+  const primaryLabel = transaction.phase === "signing"
+    ? "CHECK YOUR WALLET"
+    : action === "enter"
+      ? "STAMP MY RECEIPT"
+      : action === "claim"
+        ? "CLAIM TEST USDT"
+        : action === "refund"
+          ? "REFUND MY ENTRY"
+          : action === "paid"
+            ? "RECEIPT PAID"
+            : action === "waiting"
+              ? "VIEW YOUR RECEIPT"
+              : locked
+                ? "VIEW POOL RECEIPT"
+                : "CONNECT WALLET ABOVE";
+  const primaryDisabled = transaction.phase === "signing" || action === "paid" || (!locked && action === "connect");
   return (
     <main className="play-shell mx-auto grid w-full max-w-[1500px] flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_430px]">
       <section className="min-w-0 border-ink px-5 py-8 md:px-8 lg:border-r lg:py-10">
@@ -203,9 +278,21 @@ function PlayScreen({
           <NumberControl disabled={locked} label="ENGLAND CORNERS" max={40} onChange={(value) => update(3, value)} value={prediction[3]} />
         </div>
         <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_0.38fr]">
-          <button className="primary-action physical-button" onClick={onReceipts} type="button">{locked ? "VIEW LOCKED RECEIPT" : "STAMP MY RECEIPT"}</button>
+          <button
+            className="primary-action physical-button"
+            disabled={primaryDisabled}
+            onClick={() => sendsTransaction ? onWalletAction(prediction) : onReceipts()}
+            type="button"
+          >{primaryLabel}</button>
           <button className="danger-action physical-button" disabled={locked} onClick={() => setPrediction(DEFAULT_STAMP)} type="button">{locked ? "POOL LOCKED" : "RESET PICK"}</button>
         </div>
+        {transaction.phase !== "idle" && (
+          <div className={`transaction-notice is-${transaction.phase}`} role={transaction.phase === "error" ? "alert" : "status"}>
+            <strong>{transaction.phase === "confirmed" ? "CONFIRMED ON DEVNET" : transaction.phase.toUpperCase()}</strong>
+            <span>{transaction.message}</span>
+            {transaction.signature && <a href={`https://explorer.solana.com/tx/${transaction.signature}?cluster=devnet`} rel="noreferrer" target="_blank">VIEW TRANSACTION</a>}
+          </div>
+        )}
       </section>
       <aside className="space-y-7 px-5 py-8 md:px-8 lg:py-10">
         <div className="pool-status">
@@ -224,7 +311,7 @@ function PlayScreen({
             ))}
           </div>
         </div>
-        <PoolReceipt pool={pool} />
+        <PoolReceipt owner={owner} pool={pool} />
       </aside>
     </main>
   );
@@ -233,9 +320,11 @@ function PlayScreen({
 type ReceiptFilter = "all" | "live" | "won" | "missed" | "paper";
 type ReceiptId = "live-france" | "paper-belgium";
 
-function ArchiveReceipt({ id, pool, replay }: { id: ReceiptId; pool: PublicPool; replay: ReplayResponse }) {
+function ArchiveReceipt({ id, owner, pool, replay }: { id: ReceiptId; owner: PublicKey | null; pool: PublicPool; replay: ReplayResponse }) {
   const live = id === "live-france";
-  const vector = live ? pool.entries[0]?.forecast ?? [0, 0, 0, 0] : DEFAULT_STAMP;
+  const liveEntry = pool.entries.find(({ owner: entryOwner }) => entryOwner === owner?.toBase58())
+    ?? pool.entries[0];
+  const vector = live ? liveEntry?.forecast ?? [0, 0, 0, 0] : DEFAULT_STAMP;
   const actual = replay.finalFingerprint ?? [0, 0, 0, 0];
   return (
     <article className="receipt archive-detail" aria-label={live ? "Live France England receipt" : "Belgium Senegal paper receipt"}>
@@ -265,18 +354,28 @@ function ArchiveReceipt({ id, pool, replay }: { id: ReceiptId; pool: PublicPool;
 }
 
 function ReceiptsScreen({
+  action,
+  owner,
   pool,
   replay,
   onReplay,
+  onWalletAction,
+  transaction,
 }: {
+  action: WalletPoolAction;
+  owner: PublicKey | null;
   pool: PublicPool;
   replay: ReplayResponse;
   onReplay(): void;
+  onWalletAction(prediction: MatchFingerprint): void;
+  transaction: TransactionState;
 }) {
   const [filter, setFilter] = useState<ReceiptFilter>("all");
   const [selected, setSelected] = useState<ReceiptId>("live-france");
+  const liveEntry = pool.entries.find(({ owner: entryOwner }) => entryOwner === owner?.toBase58())
+    ?? pool.entries[0];
   const items = [
-    { id: "live-france" as const, match: "FRANCE — ENGLAND", fingerprint: pool.entries[0]?.forecast ?? [0, 0, 0, 0], status: pool.status.toUpperCase(), kind: "live" as const, distance: null },
+    { id: "live-france" as const, match: "FRANCE — ENGLAND", fingerprint: liveEntry?.forecast ?? [0, 0, 0, 0], status: pool.status.toUpperCase(), kind: "live" as const, distance: null },
     { id: "paper-belgium" as const, match: "BELGIUM — SENEGAL", fingerprint: DEFAULT_STAMP, status: "PAPER", kind: "paper" as const, distance: fingerprintDistance(DEFAULT_STAMP, replay.finalFingerprint!) },
   ];
   const visible = items.filter((item) => filter === "all" || item.kind === filter || (filter === "missed" && item.distance !== null && item.distance > 0));
@@ -310,9 +409,23 @@ function ReceiptsScreen({
         </div>
       </section>
       <aside className="space-y-4 px-5 py-8 md:px-8 lg:py-10">
-        <ArchiveReceipt id={selected} pool={pool} replay={replay} />
+        <ArchiveReceipt id={selected} owner={owner} pool={pool} replay={replay} />
+        {selectedLive && (action === "claim" || action === "refund") && (
+          <button
+            className="primary-action physical-button"
+            disabled={transaction.phase === "signing"}
+            onClick={() => onWalletAction(liveEntry?.forecast ?? DEFAULT_STAMP)}
+            type="button"
+          >{transaction.phase === "signing" ? "CHECK YOUR WALLET" : action === "claim" ? "CLAIM TEST USDT" : "REFUND MY ENTRY"}</button>
+        )}
         <a className="primary-action physical-button is-link" href={proofHref} rel="noreferrer" target="_blank">{selectedLive ? "VIEW DEVNET POOL" : "VIEW SOLANA PROOF"}</a>
         <button className="secondary-action physical-button" onClick={onReplay} type="button">OPEN PAPER REPLAY</button>
+        {transaction.phase !== "idle" && selectedLive && (
+          <div className={`transaction-notice is-${transaction.phase}`} role={transaction.phase === "error" ? "alert" : "status"}>
+            <strong>{transaction.phase === "confirmed" ? "CONFIRMED ON DEVNET" : transaction.phase.toUpperCase()}</strong>
+            <span>{transaction.message}</span>
+          </div>
+        )}
       </aside>
     </main>
   );
@@ -625,6 +738,11 @@ export function App() {
   const [prediction, setPrediction] = useState<MatchFingerprint>(DEFAULT_STAMP);
   const [frameIndex, setFrameIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [transaction, setTransaction] = useState<TransactionState>({
+    phase: "idle",
+    message: "",
+  });
+  const walletPool = useWalletPool(pool);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -665,11 +783,60 @@ export function App() {
     setPlaying(false);
   }, []);
 
+  const executeWalletAction = useCallback(async (values: MatchFingerprint) => {
+    if (!pool || !walletPool.owner || !walletPool.program) {
+      setTransaction({ phase: "error", message: "Connect a devnet wallet before signing a STAMP action." });
+      return;
+    }
+    setTransaction({ phase: "signing", message: "Review the exact STAMP instruction in your wallet." });
+    try {
+      const client = await import("./stamp-client.js");
+      const signature = walletPool.action === "enter"
+        ? await client.enterPool(walletPool.program, pool, walletPool.owner, values)
+        : walletPool.action === "claim"
+          ? await client.claimPrize(walletPool.program, pool, walletPool.owner)
+          : walletPool.action === "refund"
+            ? await client.refundEntry(walletPool.program, pool, walletPool.owner)
+            : null;
+      if (!signature) throw new Error("No wallet transaction is available for this receipt state");
+      setTransaction({
+        phase: "confirmed",
+        message: "The wallet-signed transaction reached confirmed commitment.",
+        signature,
+      });
+      setLoadKey((value) => value + 1);
+    } catch (reason: unknown) {
+      setTransaction({
+        phase: "error",
+        message: reason instanceof Error ? reason.message : "Wallet transaction failed",
+      });
+    }
+  }, [pool, walletPool.action, walletPool.owner, walletPool.program]);
+
   const body = useMemo(() => {
     if (error) return <ErrorScreen message={error} retry={() => setLoadKey((value) => value + 1)} />;
     if (!replay || !pool) return <LoadingScreen />;
-    if (view === "play") return <PlayScreen onReceipts={() => setView("receipts")} pool={pool} />;
-    if (view === "receipts") return <ReceiptsScreen onReplay={() => { restart(); setView("replay"); }} pool={pool} replay={replay} />;
+    if (view === "play") return (
+      <PlayScreen
+        action={walletPool.action}
+        onReceipts={() => setView("receipts")}
+        onWalletAction={executeWalletAction}
+        owner={walletPool.owner}
+        pool={pool}
+        transaction={transaction}
+      />
+    );
+    if (view === "receipts") return (
+      <ReceiptsScreen
+        action={walletPool.action}
+        onReplay={() => { restart(); setView("replay"); }}
+        onWalletAction={executeWalletAction}
+        owner={walletPool.owner}
+        pool={pool}
+        replay={replay}
+        transaction={transaction}
+      />
+    );
     if (mode === "result") return <ResultScreen onRestart={restart} prediction={prediction} replay={replay} />;
     return (
       <EntryWorkspace
@@ -695,7 +862,7 @@ export function App() {
         setPrediction={setPrediction}
       />
     );
-  }, [error, frameIndex, mode, playing, pool, prediction, replay, restart, view]);
+  }, [error, executeWalletAction, frameIndex, mode, playing, pool, prediction, replay, restart, transaction, view, walletPool.action, walletPool.owner]);
 
   return (
     <div className="paper-app min-h-[100dvh] text-ink">

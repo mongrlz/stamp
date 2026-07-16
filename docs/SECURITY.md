@@ -32,6 +32,10 @@ Mitigations in this project:
 - Keeper secrets remain in ignored JSON/env files and are not accepted over an HTTP route.
 - Browser code does not bundle the keeper or TxLINE client and receives only normalized,
   cached replay milestones from the read-only API.
+- Wallet discovery uses Wallet Standard capabilities. Private keys remain in the wallet; STAMP
+  receives signed transaction bytes only and cannot sign keeper or participant actions itself.
+- Browser transaction builders pin STAMP's program id and standard SPL Token program and derive
+  every Pool, Vault, Position, and associated token account deterministically.
 - Dependency migration to Solana's newer client stack should happen after Anchor exposes a compatible path.
 
 The web toolchain uses patched Vite `8.1.5`; npm's remaining 10 findings (7 moderate and 3
