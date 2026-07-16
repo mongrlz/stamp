@@ -1,0 +1,20 @@
+[package]
+name = "mock_txline"
+version = "0.1.0"
+description = "Local-only TxLINE ABI mock for STAMP integration tests"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "mock_txline"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = "0.32.1"

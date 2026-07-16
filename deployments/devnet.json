@@ -1,0 +1,57 @@
+{
+  "cluster": "devnet",
+  "program": {
+    "address": "7Xh5gJZN2SoYmDLsVQKtqFoB8pxrvykn9S8hjFWguE5o",
+    "programData": "qT7M7g3Kon42Zzn33ktDM4Q7R7VZeenVzXpsdMvBmrn",
+    "upgradeAuthority": "GD3sR5EYPwtc1De3puPwbo2EM6Muar3hyugxV1BNSE8W",
+    "deployedSlot": 476722953,
+    "localBinaryLength": 393384,
+    "programDataLength": 399112,
+    "localBinarySha256": "62f692c33724db8135017c28f6d6995c31d09b34de7f46c2a90c788bf683d525",
+    "deployedPrefixMatchesLocalBinary": true,
+    "deploySignature": "29v76tY8pBzpZ8WqgiBHU9pytiEYmfSDVt5p1WyZG95MVodcJpB3VyKoogMxsBRJoFatxrc7fv4qhCsStkhV7tbu",
+    "latestUpgradeSignature": "3tqwYma19DgsfaLrUMQgQfvJittwAEvNwbyg1orn5fHbBqfFdtzLFu87uUKxNyge3PnRenvpQjCwMQYhJYvhUG94"
+  },
+  "txline": {
+    "program": "6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J",
+    "testUsdtMint": "ELWTKspHKCnCfCiCiqYw1EDH77k8VCP74dK9qytG2Ujh",
+    "verification": {
+      "idlVersion": "1.5.6",
+      "fixtureId": 18179550,
+      "sequence": 1315,
+      "finalVector": [3, 2, 4, 2],
+      "dailyScoresRoot": "69SexUQvQ9uNpyx6bgDLVoQ5uKkbn3uRxZXCJ5KVZ7QL",
+      "signature": "42K7LbKD5zXPLDtXSkeM8E9haaV5z6fMGm8VFSKbKirLNf8jNC5vegPs6M5mzhVSf382RceoC76bvncoQ6v7DRsx"
+    }
+  },
+  "livePool": {
+    "status": "locked",
+    "fixtureId": 18257865,
+    "fixture": "France vs England",
+    "kickoff": "2026-07-18T21:00:00.000Z",
+    "cutoff": "2026-07-18T20:45:00.000Z",
+    "settleAfter": "2026-07-19T01:00:00.000Z",
+    "refundAfter": "2026-07-20T01:00:00.000Z",
+    "pool": "3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH",
+    "vault": "B4XYBDpdyGK1YcqZCrRHBoXUQgpk3suSvBAKUrg5m4r9",
+    "vaultAmount": 2000000,
+    "entryFee": 1000000,
+    "entries": [
+      {
+        "owner": "GD3sR5EYPwtc1De3puPwbo2EM6Muar3hyugxV1BNSE8W",
+        "position": "En1JPcicDNURMKE64WqVAgw5c8wSN7EtCPsWrreX5nDy",
+        "forecast": [2, 1, 6, 4]
+      },
+      {
+        "owner": "5dotMUbmS2CqHbXY7iGVEKbL1Jw1dHnTee1vndRFdF1t",
+        "position": "GbVssGqVFUQZ3s6naJfd4rUeZugMsT4EFqT1eCATtGZT",
+        "forecast": [1, 1, 5, 5]
+      }
+    ],
+    "transactions": {
+      "createPool": "3ufMuxqdv8raUAzZ9vymdfd7hb23whkx1QkSMGbst1shbf7na8qLTyJJ9M62Nv9hBzLbaKXj216bhGwU7qHAmo1e",
+      "creatorEntry": "4UmHC91wXtUog3BXNhNf4uMz1UQXsuEdc5gndyfXhV5oGcppjSvm2ioS4XYKscxqLS3dfCQCRPnLHgMdTqHytmZT",
+      "entrantEntry": "3HPZk4ybxfTdauVnruQSRvJZLHCXqp1JXzf5hSsmQGxgXctLWVH4rJPonwcGq3FuibcE7k2LEHn8LD2K11B5oQhF"
+    }
+  }
+}

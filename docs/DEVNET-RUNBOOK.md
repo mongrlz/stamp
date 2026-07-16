@@ -1,0 +1,33 @@
+# Devnet Settlement Runbook
+
+## Live pool
+
+- Pool: `3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH`
+- Fixture: France vs England, TxLINE `18257865`
+- Settlement opens: `2026-07-19T01:00:00Z`
+- Refund fallback: `2026-07-20T01:00:00Z`
+
+The keeper should wait for TxLINE's `game_finalised` event even if the configured settlement
+time has passed. Extra time or penalties can make a match run long.
+
+## Keeper environment
+
+```bash
+export SOLANA_RPC_URL=https://api.devnet.solana.com
+export STAMP_PROGRAM_ID=7Xh5gJZN2SoYmDLsVQKtqFoB8pxrvykn9S8hjFWguE5o
+export TXLINE_ORACLE_PROGRAM_ID=6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J
+export KEEPER_KEYPAIR_PATH=/absolute/path/to/devnet-keypair.json
+export TXLINE_TOKEN_FILE=/absolute/path/to/.txline-token.json
+```
+
+Then run:
+
+```bash
+npm run keeper:settle -- --pool 3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH
+```
+
+The keeper finds the final sequence, requests keys `1,2,7,8`, derives the proof's daily-root
+PDA, and submits `settle_pool`. Record the returned signature in `deployments/devnet.json`.
+
+The winning wallet then calls `claim_prize`; the second entrant's ignored local keypair is
+stored at `target/deploy/stamp-devnet-entrant-2.json` on this machine only.

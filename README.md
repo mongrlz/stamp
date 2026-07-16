@@ -1,0 +1,62 @@
+# STAMP
+
+**Predict the shape of the match. Closest receipt wins.**
+
+STAMP is a wallet-native Solana pool where 2–16 people submit a four-number match
+fingerprint: home goals, away goals, home corners, and away corners.
+
+Every wallet pays the same entry fee into a PDA-owned token vault. After the match,
+any keeper can submit one TxLINE `validate_stat_v3` multiproof covering all four final
+stats. The program authenticates the vector, ranks every forecast with deterministic
+on-chain code, and lets the closest wallet or tied wallets claim the pot.
+
+There is no admin resolution path and the keeper cannot redirect funds.
+
+## Current backend status
+
+- Anchor 0.32.1 program with wallet position PDAs and standard SPL-token escrow
+- bounded deterministic ranking for a maximum of 16 entries
+- exact four-stat TxLINE v3 CPI with pinned oracle program and daily-root PDA validation
+- tie splitting, last-claim dust handling, double-pay guards, and timeout refunds
+- server-only TxLINE client with JWT refresh, replay finalization, SSE reconnect, and v3 parser
+- permissionless settlement keeper CLI
+- generated client IDL under `packages/stamp-sdk/src/idl/stamp.json`
+
+The frontend is intentionally not implemented yet.
+
+## Commands
+
+```bash
+npm install
+PATH="$HOME/.cargo/bin:$PATH" npm run build
+npm test
+npx tsc --noEmit
+```
+
+Run the keeper after configuring `.env` from `.env.example`:
+
+```bash
+npm run keeper:settle -- --pool <POOL_PUBKEY>
+```
+
+Use `--seq <N>` only for an explicit replay/debug sequence. Without it, the keeper finds
+the fixture's `game_finalised` event and uses that sequence.
+
+## Core files
+
+- `programs/stamp/src/lib.rs` — pool, escrow, ranking, claims, and refund state machine
+- `programs/stamp/src/oracle.rs` — TxLINE v3 wire ABI and CPI safety checks
+- `packages/txline/src` — private server/keeper TxLINE adapter
+- `packages/stamp-sdk/src` — wallet-facing PDA helpers and generated IDL
+- `services/keeper/src/settle.ts` — permissionless settlement submitter
+- `STAMP-SPEC.md` — final product and scoring contract
+- `docs/ARCHITECTURE.md` — trust boundaries and transaction lifecycle
+
+## Programs
+
+- STAMP devnet target: `7Xh5gJZN2SoYmDLsVQKtqFoB8pxrvykn9S8hjFWguE5o`
+- TxLINE devnet oracle: `6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J`
+
+The production program is deployed on devnet. `deployments/devnet.json` records the deploy
+transaction, a real TxLINE v3 verification transaction, and the funded France–England pool
+that will complete its STAMP settlement after `game_finalised`.

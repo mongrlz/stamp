@@ -1,0 +1,39 @@
+{
+  "name": "stamp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Wallet-native closest-match fingerprint pools settled by TxLINE multiproofs on Solana.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "anchor build && npm run idl:sync",
+    "build:test-programs": "anchor build -p mock_txline && anchor build -p stamp -- --features mock-oracle && npm run idl:sync",
+    "idl:sync": "mkdir -p packages/stamp-sdk/src/idl && cp target/idl/stamp.json packages/stamp-sdk/src/idl/stamp.json",
+    "check": "cargo check --workspace --all-targets",
+    "test": "npm run test:unit",
+    "test:unit": "cargo test --workspace && tsx --test tests/**/*.test.ts",
+    "test:anchor": "tsx tests/stamp.ts",
+    "lint": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings",
+    "format": "cargo fmt --all",
+    "keeper:settle": "tsx services/keeper/src/settle.ts",
+    "devnet:faucet": "tsx scripts/devnet-faucet.ts",
+    "devnet:seed-pool": "tsx scripts/seed-devnet-pool.ts",
+    "devnet:verify-txline": "tsx scripts/verify-real-txline.ts",
+    "devnet:smoke": "tsx scripts/smoke-devnet.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "0.32.1",
+    "@solana/spl-token": "0.4.14",
+    "@solana/web3.js": "1.98.4",
+    "bn.js": "5.2.5",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "24.0.14",
+    "@types/bn.js": "5.2.0",
+    "tsx": "4.20.3",
+    "typescript": "5.8.3"
+  }
+}

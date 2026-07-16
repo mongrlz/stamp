@@ -1,0 +1,1281 @@
+{
+  "address": "7Xh5gJZN2SoYmDLsVQKtqFoB8pxrvykn9S8hjFWguE5o",
+  "metadata": {
+    "name": "stamp",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "STAMP match-fingerprint pool and TxLINE settlement program"
+  },
+  "instructions": [
+    {
+      "name": "claim_prize",
+      "discriminator": [
+        157,
+        233,
+        139,
+        121,
+        246,
+        62,
+        234,
+        235
+      ],
+      "accounts": [
+        {
+          "name": "winner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pool",
+          "writable": true
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              },
+              {
+                "kind": "account",
+                "path": "winner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner_tokens",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_pool",
+      "discriminator": [
+        233,
+        146,
+        209,
+        142,
+        207,
+        104,
+        64,
+        188
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "arg",
+                "path": "args.pool_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "CreatePoolArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "enter_pool",
+      "discriminator": [
+        73,
+        134,
+        141,
+        203,
+        63,
+        251,
+        217,
+        169
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pool",
+          "writable": true
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_tokens",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "values",
+          "type": {
+            "array": [
+              "i16",
+              4
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "lock_pool",
+      "discriminator": [
+        154,
+        202,
+        217,
+        175,
+        178,
+        161,
+        30,
+        152
+      ],
+      "accounts": [
+        {
+          "name": "actor",
+          "signer": true
+        },
+        {
+          "name": "pool",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "mark_refundable",
+      "discriminator": [
+        185,
+        115,
+        187,
+        59,
+        193,
+        8,
+        197,
+        87
+      ],
+      "accounts": [
+        {
+          "name": "actor",
+          "signer": true
+        },
+        {
+          "name": "pool",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "refund_entry",
+      "discriminator": [
+        214,
+        5,
+        136,
+        23,
+        253,
+        7,
+        230,
+        81
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pool"
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_tokens",
+          "writable": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "settle_pool",
+      "discriminator": [
+        186,
+        11,
+        231,
+        111,
+        242,
+        241,
+        203,
+        64
+      ],
+      "accounts": [
+        {
+          "name": "cranker",
+          "signer": true
+        },
+        {
+          "name": "pool",
+          "writable": true
+        },
+        {
+          "name": "oracle_program"
+        },
+        {
+          "name": "oracle_roots"
+        }
+      ],
+      "args": [
+        {
+          "name": "proof",
+          "type": {
+            "defined": {
+              "name": "SettlementProofV3"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Pool",
+      "discriminator": [
+        241,
+        154,
+        109,
+        4,
+        17,
+        177,
+        109,
+        188
+      ]
+    },
+    {
+      "name": "Position",
+      "discriminator": [
+        170,
+        188,
+        143,
+        228,
+        122,
+        64,
+        247,
+        208
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "EntryRefunded",
+      "discriminator": [
+        34,
+        82,
+        130,
+        116,
+        93,
+        139,
+        188,
+        234
+      ]
+    },
+    {
+      "name": "ForecastEntered",
+      "discriminator": [
+        26,
+        220,
+        104,
+        233,
+        109,
+        127,
+        27,
+        195
+      ]
+    },
+    {
+      "name": "PoolCreated",
+      "discriminator": [
+        202,
+        44,
+        41,
+        88,
+        104,
+        220,
+        157,
+        82
+      ]
+    },
+    {
+      "name": "PoolLocked",
+      "discriminator": [
+        222,
+        161,
+        104,
+        177,
+        64,
+        73,
+        79,
+        149
+      ]
+    },
+    {
+      "name": "PoolMarkedRefundable",
+      "discriminator": [
+        130,
+        32,
+        91,
+        20,
+        63,
+        8,
+        35,
+        200
+      ]
+    },
+    {
+      "name": "PoolSettled",
+      "discriminator": [
+        71,
+        220,
+        136,
+        147,
+        65,
+        185,
+        90,
+        47
+      ]
+    },
+    {
+      "name": "PrizeClaimed",
+      "discriminator": [
+        213,
+        150,
+        192,
+        76,
+        199,
+        33,
+        212,
+        38
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidPoolConfiguration",
+      "msg": "The pool configuration is invalid."
+    },
+    {
+      "code": 6001,
+      "name": "PoolNotOpen",
+      "msg": "This pool is not open for entries."
+    },
+    {
+      "code": 6002,
+      "name": "EntryCutoffPassed",
+      "msg": "The entry cutoff has passed."
+    },
+    {
+      "code": 6003,
+      "name": "PoolFull",
+      "msg": "This pool has reached its participant limit."
+    },
+    {
+      "code": 6004,
+      "name": "InvalidForecast",
+      "msg": "Forecast values are outside the allowed range."
+    },
+    {
+      "code": 6005,
+      "name": "CannotLockYet",
+      "msg": "The pool cannot lock yet."
+    },
+    {
+      "code": 6006,
+      "name": "InsufficientEntries",
+      "msg": "The pool has too few entries to settle."
+    },
+    {
+      "code": 6007,
+      "name": "SettlementTooEarly",
+      "msg": "Settlement is not available yet."
+    },
+    {
+      "code": 6008,
+      "name": "AlreadyResolved",
+      "msg": "This pool has already reached a terminal state."
+    },
+    {
+      "code": 6009,
+      "name": "FixtureMismatch",
+      "msg": "The supplied proof belongs to a different fixture."
+    },
+    {
+      "code": 6010,
+      "name": "InvalidProofShape",
+      "msg": "The supplied TxLINE proof has the wrong shape."
+    },
+    {
+      "code": 6011,
+      "name": "ProofTooEarly",
+      "msg": "The TxLINE proof is too early to be a final settlement proof."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidFinalVector",
+      "msg": "The supplied final stat vector contains an invalid value."
+    },
+    {
+      "code": 6013,
+      "name": "WrongOracleProgram",
+      "msg": "The TxLINE oracle program is not the pinned program."
+    },
+    {
+      "code": 6014,
+      "name": "WrongDailyRootAccount",
+      "msg": "The daily-scores account is not the PDA for the proof timestamp."
+    },
+    {
+      "code": 6015,
+      "name": "OracleSerializationFailed",
+      "msg": "Failed to serialize the TxLINE CPI."
+    },
+    {
+      "code": 6016,
+      "name": "OracleReturnedNothing",
+      "msg": "TxLINE returned no validation result."
+    },
+    {
+      "code": 6017,
+      "name": "OracleReturnMismatch",
+      "msg": "The CPI return data was not produced by the pinned TxLINE program."
+    },
+    {
+      "code": 6018,
+      "name": "OutcomeNotVerified",
+      "msg": "TxLINE did not verify the supplied final vector."
+    },
+    {
+      "code": 6019,
+      "name": "MathOverflow",
+      "msg": "Arithmetic overflow."
+    },
+    {
+      "code": 6020,
+      "name": "NotWinner",
+      "msg": "This wallet does not own a winning position."
+    },
+    {
+      "code": 6021,
+      "name": "PositionAlreadyPaid",
+      "msg": "This position has already been claimed or refunded."
+    },
+    {
+      "code": 6022,
+      "name": "PoolNotRefundable",
+      "msg": "This pool is not refundable."
+    },
+    {
+      "code": 6023,
+      "name": "WrongTokenAccount",
+      "msg": "The token account does not match the pool configuration."
+    }
+  ],
+  "types": [
+    {
+      "name": "CreatePoolArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool_id",
+            "type": "u64"
+          },
+          {
+            "name": "fixture_id",
+            "type": "i64"
+          },
+          {
+            "name": "entry_fee",
+            "type": "u64"
+          },
+          {
+            "name": "max_entries",
+            "type": "u8"
+          },
+          {
+            "name": "cutoff_at",
+            "type": "i64"
+          },
+          {
+            "name": "settle_after",
+            "type": "i64"
+          },
+          {
+            "name": "refund_after",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EntryRefunded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ForecastEntered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "entry_index",
+            "type": "u8"
+          },
+          {
+            "name": "values",
+            "type": {
+              "array": [
+                "i16",
+                4
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ForecastEntry",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "values",
+            "type": {
+              "array": [
+                "i16",
+                4
+              ]
+            }
+          },
+          {
+            "name": "occupied",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Pool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_id",
+            "type": "u64"
+          },
+          {
+            "name": "fixture_id",
+            "type": "i64"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "entry_fee",
+            "type": "u64"
+          },
+          {
+            "name": "cutoff_at",
+            "type": "i64"
+          },
+          {
+            "name": "settle_after",
+            "type": "i64"
+          },
+          {
+            "name": "refund_after",
+            "type": "i64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "PoolStatus"
+              }
+            }
+          },
+          {
+            "name": "max_entries",
+            "type": "u8"
+          },
+          {
+            "name": "entry_count",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "vault_bump",
+            "type": "u8"
+          },
+          {
+            "name": "final_vector",
+            "type": {
+              "array": [
+                "i32",
+                4
+              ]
+            }
+          },
+          {
+            "name": "winner_mask",
+            "type": "u16"
+          },
+          {
+            "name": "winner_count",
+            "type": "u8"
+          },
+          {
+            "name": "winners_claimed",
+            "type": "u8"
+          },
+          {
+            "name": "winning_distance",
+            "type": "u32"
+          },
+          {
+            "name": "prize_total",
+            "type": "u64"
+          },
+          {
+            "name": "claimed_total",
+            "type": "u64"
+          },
+          {
+            "name": "proof_ts",
+            "type": "i64"
+          },
+          {
+            "name": "settlement_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "settler",
+            "type": "pubkey"
+          },
+          {
+            "name": "entries",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "ForecastEntry"
+                  }
+                },
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "fixture_id",
+            "type": "i64"
+          },
+          {
+            "name": "entry_fee",
+            "type": "u64"
+          },
+          {
+            "name": "max_entries",
+            "type": "u8"
+          },
+          {
+            "name": "cutoff_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolLocked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "entry_count",
+            "type": "u8"
+          },
+          {
+            "name": "actor",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolMarkedRefundable",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "actor",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "fixture_id",
+            "type": "i64"
+          },
+          {
+            "name": "final_vector",
+            "type": {
+              "array": [
+                "i32",
+                4
+              ]
+            }
+          },
+          {
+            "name": "winner_mask",
+            "type": "u16"
+          },
+          {
+            "name": "winner_count",
+            "type": "u8"
+          },
+          {
+            "name": "winning_distance",
+            "type": "u32"
+          },
+          {
+            "name": "prize_total",
+            "type": "u64"
+          },
+          {
+            "name": "proof_ts",
+            "type": "i64"
+          },
+          {
+            "name": "settler",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PoolStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Locked"
+          },
+          {
+            "name": "Settled"
+          },
+          {
+            "name": "Refundable"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Position",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "values",
+            "type": {
+              "array": [
+                "i16",
+                4
+              ]
+            }
+          },
+          {
+            "name": "entry_index",
+            "type": "u8"
+          },
+          {
+            "name": "paid",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrizeClaimed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "winner",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProofNode",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "is_right_sibling",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ScoresBatchSummary",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fixture_id",
+            "type": "i64"
+          },
+          {
+            "name": "update_stats",
+            "type": {
+              "defined": {
+                "name": "ScoresUpdateStats"
+              }
+            }
+          },
+          {
+            "name": "events_sub_tree_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ScoresUpdateStats",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "update_count",
+            "type": "i32"
+          },
+          {
+            "name": "min_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "max_timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SettlementProofV3",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ts",
+            "type": "i64"
+          },
+          {
+            "name": "fixture_summary",
+            "type": {
+              "defined": {
+                "name": "ScoresBatchSummary"
+              }
+            }
+          },
+          {
+            "name": "fixture_proof",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          },
+          {
+            "name": "main_tree_proof",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          },
+          {
+            "name": "event_stat_root",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "leaf_values",
+            "type": {
+              "vec": "i32"
+            }
+          },
+          {
+            "name": "multiproof_hashes",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "ProofNode"
+                }
+              }
+            }
+          },
+          {
+            "name": "leaf_indices",
+            "type": {
+              "vec": "u32"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
