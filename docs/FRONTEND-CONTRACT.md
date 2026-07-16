@@ -62,9 +62,9 @@ token program.
 If Pool status is refundable and Position is unpaid, call `refund_entry()` with the same
 wallet/token accounts used for Claim.
 
-## Server routes needed later
+## Implemented server routes
 
-The frontend will need a deliberately small API:
+The backend now provides the deliberately small API:
 
 - `GET /api/fixtures` — sanitized fixture snapshot, no TxLINE token
 - `GET /api/matches/:fixtureId/live` — normalized SSE relay
@@ -72,6 +72,7 @@ The frontend will need a deliberately small API:
 - `GET /health` — RPC, TxLINE token-refresh, and keeper readiness
 
 No write route is required for wallet actions. The wallet builds and signs them directly.
+See `docs/API.md` for response details and local operation.
 
 ## Current devnet reference
 

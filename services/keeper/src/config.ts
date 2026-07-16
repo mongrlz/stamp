@@ -1,6 +1,7 @@
-import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+
+import { loadTxLineCredentials, type TxLineCredentials } from "../../shared/src/config.js";
 
 const environmentSchema = z.object({
   SOLANA_RPC_URL: z.string().url().default("https://api.devnet.solana.com"),
@@ -11,6 +12,8 @@ const environmentSchema = z.object({
   TXLINE_BASE_URL: z.string().url().optional(),
   TXLINE_JWT: z.string().optional(),
   TXLINE_API_TOKEN: z.string().optional(),
+  KEEPER_POOL_ADDRESSES: z.string().optional(),
+  KEEPER_POLL_INTERVAL_MS: z.coerce.number().int().min(2_000).max(300_000).default(15_000),
 });
 
 export type KeeperConfig = {
@@ -18,41 +21,23 @@ export type KeeperConfig = {
   stampProgramId: string;
   oracleProgramId: string;
   keeperKeypairPath: string;
-  txline: {
-    baseUrl: string;
-    jwt?: string;
-    apiToken: string;
-  };
+  poolAddresses: string[];
+  pollIntervalMs: number;
+  txline: TxLineCredentials;
 };
 
 export function loadKeeperConfig(environment: NodeJS.ProcessEnv = process.env): KeeperConfig {
   const env = environmentSchema.parse(environment);
-  let credentials: { base?: unknown; baseUrl?: unknown; jwt?: unknown; apiToken?: unknown } = {};
-  if (env.TXLINE_TOKEN_FILE) {
-    const tokenPath = path.resolve(env.TXLINE_TOKEN_FILE);
-    credentials = JSON.parse(fs.readFileSync(tokenPath, "utf8")) as typeof credentials;
-  }
-  const baseUrl = env.TXLINE_BASE_URL
-    ?? (typeof credentials.baseUrl === "string" ? credentials.baseUrl : undefined)
-    ?? (typeof credentials.base === "string" ? credentials.base : undefined);
-  const jwt = env.TXLINE_JWT
-    ?? (typeof credentials.jwt === "string" ? credentials.jwt : undefined);
-  const rawToken = env.TXLINE_API_TOKEN ?? credentials.apiToken;
-  const apiToken = typeof rawToken === "string"
-    ? rawToken
-    : rawToken === undefined
-      ? undefined
-      : JSON.stringify(rawToken);
-  if (!baseUrl || !apiToken) {
-    throw new Error(
-      "Provide TXLINE_TOKEN_FILE or the TXLINE_BASE_URL and TXLINE_API_TOKEN variables",
-    );
-  }
   return {
     rpcUrl: env.SOLANA_RPC_URL,
     stampProgramId: env.STAMP_PROGRAM_ID,
     oracleProgramId: env.TXLINE_ORACLE_PROGRAM_ID,
     keeperKeypairPath: path.resolve(env.KEEPER_KEYPAIR_PATH),
-    txline: { baseUrl, jwt, apiToken },
+    poolAddresses: (env.KEEPER_POOL_ADDRESSES ?? "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+    pollIntervalMs: env.KEEPER_POLL_INTERVAL_MS,
+    txline: loadTxLineCredentials(environment),
   };
 }

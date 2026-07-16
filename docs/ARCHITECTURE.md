@@ -65,6 +65,11 @@ time and keeps payout state independent of entry ordering after settlement.
 - strict Zod validation for the current v3 proof response
 - Anchor argument conversion and daily-root PDA derivation
 
-`services/keeper` intentionally has one narrow responsibility: convert a finalized fixture
-into `settle_pool`. A compromised keeper key loses only its fee balance; it cannot withdraw
-the pool.
+`services/api` exposes the future UI's read surface without exposing TxLINE credentials:
+sanitized fixtures, normalized live SSE, public Pool state, deterministic settlement receipts,
+and RPC/program health. It has no write routes and uses a generated read-only wallet.
+
+`services/keeper` converts finalized fixtures into `settle_pool`. Its daemon can watch an
+explicit allowlist or discover Pool accounts, skips terminal/early pools, classifies matches
+without `game_finalised` as pending, and marks underfilled/timed-out pools refundable. A
+compromised keeper key loses only its fee balance; it cannot withdraw the pool.

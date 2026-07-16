@@ -19,7 +19,8 @@ There is no admin resolution path and the keeper cannot redirect funds.
 - exact four-stat TxLINE v3 CPI with pinned oracle program and daily-root PDA validation
 - tie splitting, last-claim dust handling, double-pay guards, and timeout refunds
 - server-only TxLINE client with JWT refresh, replay finalization, SSE reconnect, and v3 parser
-- permissionless settlement keeper CLI
+- read-only HTTP API with sanitized fixtures, pools, receipts, health, and live SSE
+- permissionless one-shot keeper plus a polling settlement/refund daemon
 - generated client IDL under `packages/stamp-sdk/src/idl/stamp.json`
 
 The frontend is intentionally not implemented yet.
@@ -30,6 +31,7 @@ The frontend is intentionally not implemented yet.
 npm install
 PATH="$HOME/.cargo/bin:$PATH" npm run build
 npm test
+npm run test:local
 npx tsc --noEmit
 ```
 
@@ -42,6 +44,13 @@ npm run keeper:settle -- --pool <POOL_PUBKEY>
 Use `--seq <N>` only for an explicit replay/debug sequence. Without it, the keeper finds
 the fixture's `game_finalised` event and uses that sequence.
 
+Start the read-only API or a keeper worker after loading `.env`:
+
+```bash
+npm run api:start
+npm run keeper:daemon
+```
+
 ## Core files
 
 - `programs/stamp/src/lib.rs` — pool, escrow, ranking, claims, and refund state machine
@@ -49,8 +58,11 @@ the fixture's `game_finalised` event and uses that sequence.
 - `packages/txline/src` — private server/keeper TxLINE adapter
 - `packages/stamp-sdk/src` — wallet-facing PDA helpers and generated IDL
 - `services/keeper/src/settle.ts` — permissionless settlement submitter
+- `services/keeper/src/daemon.ts` — idempotent pool watcher, settlement, and refund worker
+- `services/api/src` — credential-safe public read/SSE service
 - `STAMP-SPEC.md` — final product and scoring contract
 - `docs/ARCHITECTURE.md` — trust boundaries and transaction lifecycle
+- `docs/API.md` — route and operational contract
 
 ## Programs
 

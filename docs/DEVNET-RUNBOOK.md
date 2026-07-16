@@ -26,6 +26,15 @@ Then run:
 npm run keeper:settle -- --pool 3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH
 ```
 
+For automatic monitoring, set `KEEPER_POOL_ADDRESSES` to the Pool address and run:
+
+```bash
+npm run keeper:daemon
+```
+
+Before settlement eligibility it reports `wait`. After eligibility but before TxLINE emits
+`game_finalised`, it reports `pending-final`. It submits only after both gates pass.
+
 The keeper finds the final sequence, requests keys `1,2,7,8`, derives the proof's daily-root
 PDA, and submits `settle_pool`. Record the returned signature in `deployments/devnet.json`.
 
