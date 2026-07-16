@@ -4,6 +4,8 @@ import { getAccount } from "@solana/spl-token";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 
+import { publicPool, settlementReceipt } from "../services/shared/src/pool.js";
+
 const RPC = "https://api.devnet.solana.com";
 const PROGRAM = new PublicKey("7Xh5gJZN2SoYmDLsVQKtqFoB8pxrvykn9S8hjFWguE5o");
 const POOL = new PublicKey("3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH");
@@ -27,18 +29,28 @@ async function main(): Promise<void> {
   }).pool.fetch(POOL);
   const vault = await getAccount(connection, VAULT, "confirmed");
 
-  assert(Object.keys(pool.status)[0] === "locked", "Live pool is not locked");
+  const status = Object.keys(pool.status)[0];
+  assert(status === "locked" || status === "settled", `Unexpected live pool status: ${status}`);
   assert(pool.entryCount === 2 && pool.maxEntries === 2, "Live pool entry count is wrong");
   assert((pool.fixtureId as BN).toNumber() === 18_257_865, "Live pool fixture id is wrong");
   assert(vault.owner.equals(POOL), "Vault is not owned by the Pool PDA");
-  assert(vault.amount === 2_000_000n, "Vault does not contain exactly 2 test USDT");
+  if (status === "locked") {
+    assert(vault.amount === 2_000_000n, "Locked vault does not contain exactly 2 test USDT");
+  } else {
+    const prizeTotal = BigInt((pool.prizeTotal as BN).toString());
+    const claimedTotal = BigInt((pool.claimedTotal as BN).toString());
+    assert(prizeTotal === 2_000_000n, "Settled prize total is not exactly 2 test USDT");
+    assert(claimedTotal <= prizeTotal, "Claimed total exceeds the settled prize");
+    assert(vault.amount === prizeTotal - claimedTotal, "Vault balance does not match unclaimed prize");
+    assert(pool.winnerMask > 0 && pool.winnerCount > 0, "Settled pool has no winner");
+  }
 
   process.stdout.write(`${JSON.stringify({
     ok: true,
     program: PROGRAM.toBase58(),
     programExecutable: programAccount.executable,
     pool: POOL.toBase58(),
-    status: Object.keys(pool.status)[0],
+    status,
     fixtureId: (pool.fixtureId as BN).toString(),
     entries: pool.entries.slice(0, pool.entryCount).map((entry: any) => ({
       owner: entry.owner.toBase58(),
@@ -47,6 +59,8 @@ async function main(): Promise<void> {
     vault: VAULT.toBase58(),
     vaultOwner: vault.owner.toBase58(),
     vaultAmount: vault.amount.toString(),
+    poolState: publicPool(POOL, pool),
+    settlement: settlementReceipt(POOL, pool),
   }, null, 2)}\n`);
 }
 

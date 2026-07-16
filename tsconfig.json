@@ -10,5 +10,5 @@
     "outDir": "dist",
     "types": ["node"]
   },
-  "include": ["packages/**/*.ts", "services/**/*.ts", "tests/**/*.ts"]
+  "include": ["packages/**/*.ts", "services/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts"]
 }

@@ -3,8 +3,8 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 
 import { TxLineClient } from "../../../packages/txline/src/client.js";
 import { connectionFor, createStampProgram } from "../../shared/src/anchor.js";
+import { readKeypair } from "../../shared/src/keypair.js";
 import { loadKeeperConfig, type KeeperConfig } from "./config.js";
-import { readKeypair } from "./keypair.js";
 
 export type KeeperRuntime = {
   config: KeeperConfig;

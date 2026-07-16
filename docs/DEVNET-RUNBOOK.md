@@ -39,4 +39,24 @@ The keeper finds the final sequence, requests keys `1,2,7,8`, derives the proof'
 PDA, and submits `settle_pool`. Record the returned signature in `deployments/devnet.json`.
 
 The winning wallet then calls `claim_prize`; the second entrant's ignored local keypair is
-stored at `target/deploy/stamp-devnet-entrant-2.json` on this machine only.
+stored at `target/deploy/stamp-devnet-entrant-2.json` on this machine only. Use either the
+single-wallet command:
+
+```bash
+npm run wallet:claim -- --pool 3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH \
+  --keypair /absolute/path/to/winner.json --inspect
+```
+
+`--inspect` is read-only. Remove it only after the result reports `eligible`.
+
+or the idempotent completion command, which settles if needed and claims only eligible,
+unpaid winners among the supplied participant wallets:
+
+```bash
+npm run keeper:finalize -- --pool 3TGEb7Bwc1AZ1qxhFpQQZfxop9PZyiHPtyTKNybEZGWH \
+  --owner-keypair /absolute/path/to/creator.json \
+  --owner-keypair target/deploy/stamp-devnet-entrant-2.json
+```
+
+This tool does not grant the keeper payout authority. Each claim remains signed by its
+winning wallet, and the program constrains the destination to that wallet's token account.

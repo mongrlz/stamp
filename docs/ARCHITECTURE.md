@@ -73,3 +73,8 @@ and RPC/program health. It has no write routes and uses a generated read-only wa
 explicit allowlist or discover Pool accounts, skips terminal/early pools, classifies matches
 without `game_finalised` as pending, and marks underfilled/timed-out pools refundable. A
 compromised keeper key loses only its fee balance; it cannot withdraw the pool.
+
+`services/wallet` owns claim construction. The finalization CLI may orchestrate settlement
+and multiple local claims in one operator command, but it still submits one independently
+signed `claim_prize` transaction per winning wallet. On-chain Position seeds, winner-mask
+membership, and token-account ownership remain the payout authority.

@@ -51,6 +51,22 @@ npm run api:start
 npm run keeper:daemon
 ```
 
+After settlement, a winning wallet can claim directly:
+
+```bash
+npm run wallet:claim -- --pool <POOL_PUBKEY> --keypair <WINNER_JSON>
+```
+
+Add `--inspect` to verify eligibility without creating an account or submitting a transaction.
+
+For the devnet proof run, the idempotent finalizer settles once TxLINE publishes
+`game_finalised`, then claims for whichever supplied local participant keypairs won:
+
+```bash
+npm run keeper:finalize -- --pool <POOL_PUBKEY> \
+  --owner-keypair <FIRST_JSON> --owner-keypair <SECOND_JSON>
+```
+
 ## Core files
 
 - `programs/stamp/src/lib.rs` — pool, escrow, ranking, claims, and refund state machine

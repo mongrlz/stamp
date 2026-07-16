@@ -18,6 +18,7 @@ import BN from "bn.js";
 
 import { derivePoolPda, derivePositionPda, deriveVaultPda } from "../packages/stamp-sdk/src/pdas.js";
 import { deriveDailyScoresRoot } from "../packages/txline/src/proof.js";
+import { claimPrizeForOwner } from "../services/wallet/src/claim-prize.js";
 
 const STAMP_PROGRAM = new PublicKey("7Xh5gJZN2SoYmDLsVQKtqFoB8pxrvykn9S8hjFWguE5o");
 const MOCK_TXLINE_PROGRAM = new PublicKey("8xo4Evfg7dcWjbYVcXZSbScqbWvGhjgSpaJzbiKrQX7m");
@@ -186,17 +187,18 @@ async function main(): Promise<void> {
 
   for (let index = 0; index < 2; index += 1) {
     const winner = entrants[index]!;
-    const [position] = derivePositionPda(stamp.programId, pool, winner.publicKey);
-    await methods(stamp).claimPrize().accounts({
-      winner: winner.publicKey,
-      pool,
-      position,
-      vault,
-      winnerTokens: tokenAccounts[index],
-      mint,
-      tokenProgram: TOKEN_PROGRAM_ID,
-    }).signers([winner]).rpc();
+    const result = await claimPrizeForOwner({
+      program: stamp,
+      owner: winner,
+      poolAddress: pool,
+    });
+    assert.equal(result.amount, "1500000");
+    assert.equal(result.entryIndex, index);
   }
+  await assert.rejects(
+    claimPrizeForOwner({ program: stamp, owner: entrants[0]!, poolAddress: pool }),
+    /already-paid/,
+  );
   assert.equal((await getAccount(provider.connection, vault)).amount, 0n);
   assert.equal((await getAccount(provider.connection, tokenAccounts[0]!)).amount, 10_500_000n);
   assert.equal((await getAccount(provider.connection, tokenAccounts[1]!)).amount, 10_500_000n);
