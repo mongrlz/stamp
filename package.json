@@ -14,6 +14,7 @@
     "check": "cargo check --workspace --all-targets",
     "test": "npm run test:unit",
     "test:unit": "cargo test --workspace && tsx --test tests/**/*.test.ts",
+    "test:local": "bash scripts/test-local.sh",
     "test:anchor": "tsx tests/stamp.ts",
     "lint": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings",
     "format": "cargo fmt --all",
