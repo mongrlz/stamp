@@ -22,6 +22,12 @@ export type ReceiptCanvasProps = {
 
 const WIDTH = 700;
 const HEIGHT = 1020;
+const PAPER_BOUNDS = {
+  left: 18,
+  right: WIDTH - 24,
+  top: 18,
+  bottom: HEIGHT - 34,
+};
 const COLORS = {
   ink: "#181814",
   blue: "#0e42dc",
@@ -55,6 +61,113 @@ function seededRandom(seed: number): () => number {
     state ^= state + Math.imul(state ^ (state >>> 7), 61 | state);
     return ((state ^ (state >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+function traceTornPaper(
+  context: CanvasRenderingContext2D,
+  seedText: string,
+): void {
+  const random = seededRandom(hashSeed(`paper-edge:${seedText}`));
+  const { left, right, top, bottom } = PAPER_BOUNDS;
+  context.beginPath();
+  context.moveTo(left, top + (random() - 0.5) * 7);
+
+  let x = left;
+  while (x < right) {
+    x = Math.min(right, x + 8 + Math.floor(random() * 12));
+    const fiber = random() > 0.84 ? (random() - 0.5) * 12 : 0;
+    context.lineTo(x, top + (random() - 0.5) * 8 + fiber);
+  }
+
+  let y = top;
+  while (y < bottom) {
+    y = Math.min(bottom, y + 9 + Math.floor(random() * 14));
+    context.lineTo(right + (random() - 0.5) * 6, y);
+  }
+
+  x = right;
+  while (x > left) {
+    x = Math.max(left, x - 7 - Math.floor(random() * 13));
+    const tornFiber = random() > 0.72 ? random() * 10 : 0;
+    context.lineTo(x, bottom + (random() - 0.5) * 11 + tornFiber);
+  }
+
+  y = bottom;
+  while (y > top) {
+    y = Math.max(top, y - 9 - Math.floor(random() * 14));
+    context.lineTo(left + (random() - 0.5) * 6, y);
+  }
+  context.closePath();
+}
+
+function drawPaperSurface(
+  context: CanvasRenderingContext2D,
+  paper: HTMLImageElement,
+  seedText: string,
+): void {
+  const { left, right, top, bottom } = PAPER_BOUNDS;
+  const paperWidth = right - left;
+  const paperHeight = bottom - top;
+  const random = seededRandom(hashSeed(`paper-grain:${seedText}`));
+
+  context.save();
+  traceTornPaper(context, seedText);
+  context.clip();
+
+  context.fillStyle = "#f6f0e5";
+  context.fillRect(left, top, paperWidth, paperHeight);
+  context.globalAlpha = 0.82;
+  context.drawImage(paper, left, top, paperWidth, paperHeight);
+  context.globalAlpha = 1;
+
+  const edgeShade = context.createLinearGradient(left, 0, right, 0);
+  edgeShade.addColorStop(0, "rgba(75, 53, 24, 0.095)");
+  edgeShade.addColorStop(0.035, "rgba(255, 255, 255, 0.22)");
+  edgeShade.addColorStop(0.14, "rgba(255, 255, 255, 0)");
+  edgeShade.addColorStop(0.86, "rgba(255, 255, 255, 0)");
+  edgeShade.addColorStop(0.97, "rgba(79, 56, 25, 0.055)");
+  edgeShade.addColorStop(1, "rgba(55, 38, 18, 0.12)");
+  context.fillStyle = edgeShade;
+  context.fillRect(left, top, paperWidth, paperHeight);
+
+  context.globalCompositeOperation = "multiply";
+  for (let index = 0; index < 115; index += 1) {
+    const width = 0.6 + random() * 3.8;
+    const height = 0.5 + random() * 1.7;
+    context.fillStyle = `rgba(92, 68, 37, ${0.009 + random() * 0.022})`;
+    context.fillRect(
+      left + random() * paperWidth,
+      top + random() * paperHeight,
+      width,
+      height,
+    );
+  }
+
+  context.globalCompositeOperation = "screen";
+  context.strokeStyle = "rgba(255, 255, 255, 0.17)";
+  context.lineWidth = 1;
+  for (let index = 0; index < 6; index += 1) {
+    const wrinkleY = top + 90 + random() * (paperHeight - 180);
+    context.beginPath();
+    context.moveTo(left + 34 + random() * 80, wrinkleY);
+    context.bezierCurveTo(
+      left + paperWidth * 0.34,
+      wrinkleY - 4 + random() * 8,
+      left + paperWidth * 0.66,
+      wrinkleY + 4 - random() * 8,
+      right - 34 - random() * 80,
+      wrinkleY + (random() - 0.5) * 7,
+    );
+    context.stroke();
+  }
+  context.restore();
+
+  context.save();
+  traceTornPaper(context, seedText);
+  context.strokeStyle = "rgba(75, 52, 22, 0.12)";
+  context.lineWidth = 1.15;
+  context.stroke();
+  context.restore();
 }
 
 function fitFont(
@@ -122,6 +235,83 @@ function drawThermalText(
   context.restore();
 }
 
+function drawDistressedStamp(
+  context: CanvasRenderingContext2D,
+  text: string,
+  tone: ReceiptTone,
+  centerY: number,
+  seedText: string,
+): void {
+  const uppercase = text.toUpperCase();
+  const stampSize = fitFont(context, uppercase, '"Bebas Neue"', 900, 52, WIDTH - 150);
+  context.save();
+  context.font = `900 ${stampSize}px "Bebas Neue"`;
+  const measurement = context.measureText(uppercase);
+  context.restore();
+
+  const logicalWidth = Math.ceil(measurement.width + 72);
+  const logicalHeight = 104;
+  const layer = document.createElement("canvas");
+  layer.width = logicalWidth * 2;
+  layer.height = logicalHeight * 2;
+  const layerContext = layer.getContext("2d");
+  if (!layerContext) return;
+
+  const random = seededRandom(hashSeed(`stamp:${seedText}:${uppercase}`));
+  layerContext.scale(2, 2);
+  layerContext.strokeStyle = COLORS[tone];
+  layerContext.fillStyle = COLORS[tone];
+  layerContext.globalAlpha = 0.76;
+  layerContext.lineWidth = 5;
+  layerContext.strokeRect(6, 8, logicalWidth - 12, logicalHeight - 18);
+  layerContext.globalAlpha = 0.48;
+  layerContext.lineWidth = 1.7;
+  for (let pass = 0; pass < 3; pass += 1) {
+    const offsetX = (random() - 0.5) * 2.2;
+    const offsetY = (random() - 0.5) * 2.2;
+    layerContext.strokeRect(15 + offsetX, 17 + offsetY, logicalWidth - 30, logicalHeight - 36);
+  }
+
+  layerContext.globalAlpha = 0.83;
+  layerContext.font = `900 ${stampSize}px "Bebas Neue"`;
+  layerContext.textAlign = "center";
+  layerContext.textBaseline = "alphabetic";
+  layerContext.fillText(uppercase, logicalWidth / 2, 72);
+  layerContext.globalAlpha = 0.12;
+  for (let pass = 0; pass < 4; pass += 1) {
+    layerContext.fillText(
+      uppercase,
+      logicalWidth / 2 + (random() - 0.5) * 1.6,
+      72 + (random() - 0.5) * 1.5,
+    );
+  }
+
+  layerContext.globalCompositeOperation = "destination-out";
+  for (let index = 0; index < 185; index += 1) {
+    layerContext.globalAlpha = 0.08 + random() * 0.24;
+    layerContext.fillRect(
+      5 + random() * (logicalWidth - 10),
+      7 + random() * (logicalHeight - 14),
+      0.7 + random() * 4.2,
+      0.45 + random() * 1.5,
+    );
+  }
+
+  context.save();
+  context.translate(WIDTH / 2, centerY);
+  context.rotate(-0.045);
+  context.globalCompositeOperation = "multiply";
+  context.globalAlpha = 0.94;
+  context.drawImage(
+    layer,
+    -logicalWidth / 2,
+    -logicalHeight / 2,
+    logicalWidth,
+    logicalHeight,
+  );
+  context.restore();
+}
+
 export function ReceiptCanvas({
   ariaLabel,
   status,
@@ -155,11 +345,7 @@ export function ReceiptCanvas({
       canvas.height = HEIGHT * 2;
       context.scale(2, 2);
       context.clearRect(0, 0, WIDTH, HEIGHT);
-      context.fillStyle = "#f6f0e5";
-      context.fillRect(0, 0, WIDTH, HEIGHT);
-      context.globalAlpha = 0.76;
-      context.drawImage(paper, 0, 0, WIDTH, HEIGHT);
-      context.globalAlpha = 1;
+      drawPaperSurface(context, paper, barcodeSeed);
 
       const random = seededRandom(hashSeed(barcodeSeed));
       context.save();
@@ -216,23 +402,7 @@ export function ReceiptCanvas({
 
       if (stamp) {
         const stampY = Math.min(Math.max(y + 8, 680), 812);
-        context.save();
-        context.translate(WIDTH / 2, stampY);
-        context.rotate(-0.045);
-        const stampSize = fitFont(context, stamp, '"Bebas Neue"', 900, 52, WIDTH - 150);
-        context.font = `900 ${stampSize}px "Bebas Neue"`;
-        const measurement = context.measureText(stamp.toUpperCase());
-        const boxWidth = measurement.width + 50;
-        context.strokeStyle = COLORS[stampTone];
-        context.fillStyle = COLORS[stampTone];
-        context.globalAlpha = 0.86;
-        context.lineWidth = 5;
-        context.strokeRect(-boxWidth / 2, -48, boxWidth, 72);
-        context.lineWidth = 2;
-        context.strokeRect(-boxWidth / 2 + 9, -39, boxWidth - 18, 54);
-        context.textAlign = "center";
-        context.fillText(stamp.toUpperCase(), 0, 10);
-        context.restore();
+        drawDistressedStamp(context, stamp, stampTone, stampY, barcodeSeed);
       }
 
       drawBarcode(context, 875, barcodeSeed);

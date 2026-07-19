@@ -661,6 +661,7 @@ a:focus-visible {
 }
 
 .receipt--canvas {
+  isolation: isolate;
   width: 100%;
   max-width: 430px;
   margin-inline: auto;
@@ -673,8 +674,19 @@ a:focus-visible {
   mask: none;
 }
 
-.receipt--canvas::before,
-.receipt--canvas::after { content: none; }
+.receipt--canvas::before { content: none; }
+
+.receipt--canvas::after {
+  position: absolute;
+  z-index: -1;
+  inset: 4% 2% 3% 4%;
+  pointer-events: none;
+  content: "";
+  border-radius: 3%;
+  background: rgb(67 47 22 / 0.2);
+  filter: blur(18px);
+  transform: translate(10px, 16px) rotate(-0.12deg);
+}
 
 .receipt > .sr-only {
   position: absolute;
@@ -688,22 +700,17 @@ a:focus-visible {
 }
 
 .receipt-canvas {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
-  background: #f6f0e5;
-  -webkit-mask:
-    linear-gradient(#000 0 0) center / calc(100% - 8px) calc(100% - 12px) no-repeat,
-    radial-gradient(circle at 50% 100%, #000 68%, transparent 72%) top / 13px 8px repeat-x,
-    radial-gradient(circle at 50% 0%, #000 68%, transparent 72%) bottom / 13px 8px repeat-x;
-  mask:
-    linear-gradient(#000 0 0) center / calc(100% - 8px) calc(100% - 12px) no-repeat,
-    radial-gradient(circle at 50% 100%, #000 68%, transparent 72%) top / 13px 8px repeat-x,
-    radial-gradient(circle at 50% 0%, #000 68%, transparent 72%) bottom / 13px 8px repeat-x;
+  background: transparent;
   filter:
-    drop-shadow(0 2px 1px rgb(255 255 255 / 0.72))
-    drop-shadow(12px 18px 11px rgb(65 48 26 / 0.3));
-  transform: rotate(-0.12deg) translateZ(0);
+    drop-shadow(0 1px 0 rgb(255 255 255 / 0.82))
+    drop-shadow(5px 7px 4px rgb(65 48 26 / 0.17))
+    drop-shadow(11px 18px 12px rgb(65 48 26 / 0.24));
+  transform: rotate(-0.16deg) translateZ(0);
 }
 
 .receipt::before {

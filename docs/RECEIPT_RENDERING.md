@@ -4,11 +4,13 @@ STAMP receipts are rendered as one high-resolution Canvas 2D surface rather than
 
 ## Production path
 
-1. Draw the generated thermal-paper texture into the canvas.
+1. Draw a seeded, irregular torn-paper silhouette inside transparent canvas margins, then clip the generated thermal-paper texture into it.
 2. Draw receipt ink, fingerprint values, dividers, barcode, and the rotated result stamp into the same pixel surface.
 3. Use `globalCompositeOperation = "multiply"` while drawing the ink so the paper grain remains visible through it.
 4. Add seeded, deterministic micro-offsets and opacity variation to soften perfectly digital edges without making receipt data unstable.
 5. Keep a visually hidden HTML transcript beside the canvas so the receipt remains accessible to assistive technology.
+
+The transparent canvas margin is intentional: it keeps the full deckled edge and alpha-aware drop shadow visible at narrow sidebar sizes without clipping the bottom corners.
 
 The implementation is in `apps/web/src/receipt-canvas.tsx` and is used by live pool, archive, replay, and final-result receipts.
 
