@@ -149,7 +149,7 @@ function MarketWire({ pool, replay }: { pool: PublicPool | null; replay: ReplayR
     ).toFixed(1)).join(" · ")
     : "— · — · — · —";
   const wire = [
-    ["MATCH", "FRANCE — ENGLAND"],
+    ["MATCH", "SPAIN — ARGENTINA"],
     ["MARKET", "FINAL SCORE + CORNERS"],
     ["STAMPS", pool ? `${pool.entryCount} / ${pool.maxEntries}` : "SYNCING"],
     ["POOL", pool ? `${formatPaperAmount((BigInt(pool.entryFee) * BigInt(pool.entryCount)).toString())} TEST USDT` : "—"],
@@ -288,11 +288,11 @@ function PoolReceipt({ pool, owner }: { pool: PublicPool; owner: PublicKey | nul
       fingerprint={entry?.forecast ?? ["—", "—", "—", "—"]}
       fingerprintLabel="Locked stamp"
       footer="TEST MODE · NO MAINNET FUNDS"
-      legend="FRG · ENG · FRC · ENC"
+      legend="SPG · ARG · SPC · ARC"
       stamp={`POOL ${pool.status.toUpperCase()}`}
       stampTone="blue"
       status={`DEVNET · ${pool.status.toUpperCase()}`}
-      teams={["FRANCE", "ENGLAND"]}
+      teams={["SPAIN", "ARGENTINA"]}
       title="STAMP RECEIPT"
     />
   );
@@ -351,11 +351,11 @@ function PlayScreen({
     <main className="play-shell mx-auto grid w-full max-w-[1500px] flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_430px]">
       <section className="min-w-0 border-ink px-5 py-8 md:px-8 lg:border-r lg:py-10">
         <div className="section-kicker"><StatusDot /> PLAY · DEVNET</div>
-        <h1 className="match-title"><span>FRANCE</span><i>—</i><span>ENGLAND</span></h1>
+        <h1 className="match-title"><span>SPAIN</span><i>—</i><span>ARGENTINA</span></h1>
         <div className="match-selector mt-7">
           <div className="match-selector__head"><strong>SELECT A MATCH</strong><span>TONIGHT</span><span>TOMORROW</span></div>
-          <div className="match-option"><span>☆</span><strong>SPAIN — PORTUGAL</strong><time>20:00</time></div>
-          <div className="match-option is-selected"><span>✓</span><strong>FRANCE — ENGLAND</strong><time>21:00</time></div>
+          <div className="match-option"><span>☆</span><strong>FRANCE — ENGLAND</strong><time>FINAL</time></div>
+          <div className="match-option is-selected"><span>✓</span><strong>SPAIN — ARGENTINA</strong><time>19:00</time></div>
           <div className="match-option"><span>☆</span><strong>GERMANY — ITALY</strong><time>22:00</time></div>
           <div className="match-option"><span>☆</span><strong>NETHERLANDS — BELGIUM</strong><time>22:45</time></div>
         </div>
@@ -367,10 +367,10 @@ function PlayScreen({
           <div className="font-mono text-xs text-green">TXLINE FIXTURE {pool.fixtureId}</div>
         </div>
         <div className="fingerprint-grid mt-7">
-          <NumberControl disabled={locked} label="FRANCE GOALS" max={20} onChange={(value) => update(0, value)} value={prediction[0]} />
-          <NumberControl disabled={locked} label="ENGLAND GOALS" max={20} onChange={(value) => update(1, value)} value={prediction[1]} />
-          <NumberControl disabled={locked} label="FRANCE CORNERS" max={40} onChange={(value) => update(2, value)} value={prediction[2]} />
-          <NumberControl disabled={locked} label="ENGLAND CORNERS" max={40} onChange={(value) => update(3, value)} value={prediction[3]} />
+          <NumberControl disabled={locked} label="SPAIN GOALS" max={20} onChange={(value) => update(0, value)} value={prediction[0]} />
+          <NumberControl disabled={locked} label="ARGENTINA GOALS" max={20} onChange={(value) => update(1, value)} value={prediction[1]} />
+          <NumberControl disabled={locked} label="SPAIN CORNERS" max={40} onChange={(value) => update(2, value)} value={prediction[2]} />
+          <NumberControl disabled={locked} label="ARGENTINA CORNERS" max={40} onChange={(value) => update(3, value)} value={prediction[3]} />
         </div>
         <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_0.38fr]">
           <button
@@ -413,17 +413,17 @@ function PlayScreen({
 }
 
 type ReceiptFilter = "all" | "live" | "won" | "missed" | "paper";
-type ReceiptId = "live-france" | "paper-belgium";
+type ReceiptId = "live-spain" | "paper-belgium";
 
 function ArchiveReceipt({ id, owner, pool, replay }: { id: ReceiptId; owner: PublicKey | null; pool: PublicPool; replay: ReplayResponse }) {
-  const live = id === "live-france";
+  const live = id === "live-spain";
   const liveEntry = pool.entries.find(({ owner: entryOwner }) => entryOwner === owner?.toBase58())
     ?? pool.entries[0];
   const vector = live ? liveEntry?.forecast ?? [0, 0, 0, 0] : DEFAULT_STAMP;
   const actual = replay.finalFingerprint ?? [0, 0, 0, 0];
   return (
     <ReceiptCanvas
-      ariaLabel={live ? "Live France England receipt" : "Belgium Senegal paper receipt"}
+      ariaLabel={live ? "Live Spain Argentina receipt" : "Belgium Senegal paper receipt"}
       barcodeSeed={live ? pool.address : `${replay.fixtureId}-${replay.finalSequence}`}
       details={live ? [
         { label: "Pool", value: shortAddress(pool.address) },
@@ -439,7 +439,7 @@ function ArchiveReceipt({ id, owner, pool, replay }: { id: ReceiptId; owner: Pub
       stampTone={live ? "blue" : "green"}
       status={live ? `DEVNET · ${pool.status.toUpperCase()}` : "PAPER RESULT · VERIFIED DATA"}
       statusTone={live ? "blue" : "green"}
-      teams={live ? ["FRANCE", "ENGLAND"] : ["BELGIUM", "SENEGAL"]}
+      teams={live ? ["SPAIN", "ARGENTINA"] : ["BELGIUM", "SENEGAL"]}
       title="STAMP RECEIPT"
     />
   );
@@ -463,15 +463,15 @@ function ReceiptsScreen({
   transaction: TransactionState;
 }) {
   const [filter, setFilter] = useState<ReceiptFilter>("all");
-  const [selected, setSelected] = useState<ReceiptId>("live-france");
+  const [selected, setSelected] = useState<ReceiptId>("live-spain");
   const liveEntry = pool.entries.find(({ owner: entryOwner }) => entryOwner === owner?.toBase58())
     ?? pool.entries[0];
   const items = [
-    { id: "live-france" as const, match: "FRANCE — ENGLAND", fingerprint: liveEntry?.forecast ?? [0, 0, 0, 0], status: pool.status.toUpperCase(), kind: "live" as const, distance: null },
+    { id: "live-spain" as const, match: "SPAIN — ARGENTINA", fingerprint: liveEntry?.forecast ?? [0, 0, 0, 0], status: pool.status.toUpperCase(), kind: "live" as const, distance: null },
     { id: "paper-belgium" as const, match: "BELGIUM — SENEGAL", fingerprint: DEFAULT_STAMP, status: "PAPER", kind: "paper" as const, distance: fingerprintDistance(DEFAULT_STAMP, replay.finalFingerprint!) },
   ];
   const visible = items.filter((item) => filter === "all" || item.kind === filter || (filter === "missed" && item.distance !== null && item.distance > 0));
-  const selectedLive = selected === "live-france";
+  const selectedLive = selected === "live-spain";
   const proofHref = selectedLive
     ? `https://explorer.solana.com/address/${LIVE_POOL_ADDRESS}?cluster=devnet`
     : `https://explorer.solana.com/tx/${PROOF_SIGNATURE}?cluster=devnet`;
@@ -497,11 +497,11 @@ function ReceiptsScreen({
         <div className="receipt-list">
           {visible.map((item) => (
             <button className={`receipt-row ${selected === item.id ? "is-selected" : ""}`} key={item.id} onClick={() => setSelected(item.id)} type="button">
-              <div><strong>{item.match}</strong><small>{item.id === "live-france" ? "JUL 18, 2026 · 21:00 UTC" : formatArchiveDate(replay.startTime)}</small></div>
+              <div><strong>{item.match}</strong><small>{item.id === "live-spain" ? "JUL 19, 2026 · 19:00 UTC" : formatArchiveDate(replay.startTime)}</small></div>
               <div><span>FINGERPRINT</span><strong>{item.fingerprint.join("–")}</strong></div>
               <div><span>STATUS</span><strong className={item.kind === "paper" ? "text-blue" : "text-green"}>{item.status}</strong></div>
               <div><span>DISTANCE</span><strong>{item.distance ?? "—"}</strong></div>
-              <div className="mini-barcode"><span aria-hidden="true" /><small>#{item.id === "live-france" ? "1047" : "1046"}</small></div>
+              <div className="mini-barcode"><span aria-hidden="true" /><small>#{item.id === "live-spain" ? "1047" : "1046"}</small></div>
             </button>
           ))}
           {visible.length === 0 && (

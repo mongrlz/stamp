@@ -59,7 +59,7 @@ Terminal states cannot be resolved again.
 ## TxLINE settlement contract
 
 STAMP requests exactly four v3 leaves with keys `[1, 2, 7, 8]` and current total-stat
-period `0`. The caller supplies values and Merkle material, but cannot choose keys, periods,
+final-match period `100`. The caller supplies values and Merkle material, but cannot choose keys, periods,
 distance rules, or winners.
 
 The program verifies all of the following before ranking:

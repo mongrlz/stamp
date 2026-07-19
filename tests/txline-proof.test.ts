@@ -3,7 +3,10 @@ import test from "node:test";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 
-import { TXLINE_DEVNET_PROGRAM_ID } from "../packages/txline/src/constants.js";
+import {
+  TXLINE_DEVNET_PROGRAM_ID,
+  TXLINE_FINAL_PERIOD,
+} from "../packages/txline/src/constants.js";
 import { deriveDailyScoresRoot, parseStampSettlementProof } from "../packages/txline/src/proof.js";
 
 const hash = (byte: number): number[] => Array.from({ length: 32 }, () => byte);
@@ -26,7 +29,7 @@ function response() {
     },
     eventStatRoot: hash(2),
     statsToProve: [1, 2, 7, 8].map((key, index) => ({
-      stat: { key, value: [3, 2, 4, 2][index], period: 0 },
+      stat: { key, value: [3, 2, 4, 2][index], period: TXLINE_FINAL_PERIOD },
       statProof: [],
     })),
     multiproof: {

@@ -8,9 +8,9 @@ pub const MAX_ENTRIES: usize = 16;
 pub const MIN_ENTRIES_TO_SETTLE: u8 = 2;
 pub const FORECAST_DIMENSIONS: usize = 4;
 pub const STAT_KEYS: [u32; FORECAST_DIMENSIONS] = [1, 2, 7, 8];
-// Current TxLINE v3 score-total leaves use period 0. Finality is separately
+// Current TxLINE v3 score-total leaves use final-match period 100. Finality is separately
 // enforced by the pool's settle_after timestamp and the proof summary timestamp.
-pub const FINAL_PERIOD: i32 = 0;
+pub const FINAL_PERIOD: i32 = 100;
 pub const DISTANCE_WEIGHTS: [u32; FORECAST_DIMENSIONS] = [3, 3, 1, 1];
 
 pub const MAX_GOAL_PREDICTION: i16 = 20;

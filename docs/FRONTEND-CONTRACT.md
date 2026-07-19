@@ -7,7 +7,7 @@ the selected devnet account to Anchor's signing interface; keys remain inside th
 
 ## Implemented screens
 
-- **Play** renders the real funded France–England devnet pool, public entries, vault total,
+- **Play** renders the real funded Spain–Argentina devnet pool, public entries, vault total,
   settlement countdown, locked four-number STAMP, and physical receipt.
 - **Replay** records a local paper prediction and plays the authenticated Belgium–Senegal
   archive through the contract scoring rules.
@@ -110,7 +110,7 @@ See `docs/API.md` for response details and local operation.
 
 ## Current devnet reference
 
-`deployments/devnet.json` contains the first France–England UI pool. The authoritative live
-settlement run is `deployments/devnet-settlement-proof.json`, containing the corrected
-Vietnam–Myanmar pool, wallet positions, vault, timestamps, and confirmed transaction
+`deployments/devnet.json` contains the first France–England proof attempt. The authoritative live
+settlement run is `deployments/devnet-spain-argentina-proof.json`, containing the corrected
+Spain–Argentina pool, wallet positions, vault, timestamps, and confirmed transaction
 signatures. Neither artifact contains secret keys or API tokens.

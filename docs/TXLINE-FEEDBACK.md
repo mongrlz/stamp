@@ -13,7 +13,8 @@
 - The API uses camelCase JSON while the Anchor/Rust wire structs use snake_case concepts; an explicit adapter is required.
 - The v3 response names the fixture proof `subTreeProof` and the summary root
   `eventStatsSubTreeRoot`, which differ from the corresponding IDL field names.
-- Current final total-stat leaves return period `0`; this needs to be documented beside stat-key definitions.
+- Current final total-stat leaves return final-match period `100`; this changed from the
+  earlier archived period `0` shape and should be versioned beside stat-key definitions.
 - The four-key request works, while larger key sets returned HTTP 400 during exploration; an explicit request limit would help.
 - JWT refresh and API-token behavior are separate, so integrations need to retain the long-lived API token while refreshing the guest JWT.
 - A score proof's timestamp is the five-minute batch containing the selected score record, not

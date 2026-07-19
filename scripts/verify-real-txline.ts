@@ -3,7 +3,11 @@ import { AnchorProvider, Program, Wallet, type Idl } from "@coral-xyz/anchor";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 
-import { STAMP_STAT_KEYS, TXLINE_DEVNET_PROGRAM_ID } from "../packages/txline/src/constants.js";
+import {
+  STAMP_STAT_KEYS,
+  TXLINE_DEVNET_PROGRAM_ID,
+  TXLINE_FINAL_PERIOD,
+} from "../packages/txline/src/constants.js";
 import { TxLineClient } from "../packages/txline/src/client.js";
 import { deriveDailyScoresRoot } from "../packages/txline/src/proof.js";
 
@@ -52,7 +56,7 @@ async function main(): Promise<void> {
     mainTreeProof: proof.mainTreeProof,
     eventStatRoot: proof.eventStatRoot,
     leaves: STAMP_STAT_KEYS.map((key, index) => ({
-      stat: { key, value: proof.leafValues[index], period: 0 },
+      stat: { key, value: proof.leafValues[index], period: TXLINE_FINAL_PERIOD },
       statProof: [],
     })),
     multiproofHashes: proof.multiproofHashes,

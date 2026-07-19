@@ -1,0 +1,52 @@
+{
+  "cluster": "devnet",
+  "program": {
+    "address": "7Xh5gJZN2SoYmDLsVQKtqFoB8pxrvykn9S8hjFWguE5o",
+    "period100UpgradeSignature": "VL3zDubtVUJ1AV3KuBU7Ec4KhpBquXkCDrRTAQNEjNTeRwvHLFc8NXNQRu1MBXkxBvu4iwHUxMhYFYT2LgGhYyd"
+  },
+  "livePool": {
+    "status": "locked",
+    "fixtureId": 18257739,
+    "fixture": "Spain vs Argentina",
+    "kickoff": "2026-07-19T19:00:00.000Z",
+    "cutoff": "2026-07-19T02:16:18.000Z",
+    "settleAfter": "2026-07-19T06:16:18.000Z",
+    "refundAfter": "2026-07-21T06:16:18.000Z",
+    "pool": "zw7bFMbew526wo6UjfMbSQcHZmZaFJ3rP5itFEetc78",
+    "vault": "DnoKxTE8j57EZNBezQnfLRKGGB6tsyNpAvDHVGGENtyc",
+    "vaultAmount": 2000000,
+    "entryFee": 1000000,
+    "entries": [
+      {
+        "owner": "GD3sR5EYPwtc1De3puPwbo2EM6Muar3hyugxV1BNSE8W",
+        "position": "AUmBDGCHwTiLG69sS4PnLUeNkMFchtvY2HnvPNhi4yYQ",
+        "forecast": [2, 1, 6, 4]
+      },
+      {
+        "owner": "5dotMUbmS2CqHbXY7iGVEKbL1Jw1dHnTee1vndRFdF1t",
+        "position": "8gHNg7ffFYUd6vHEVFpm7LrHNhahmAE6r3hcAfQ1S7Sj",
+        "forecast": [1, 1, 5, 5]
+      }
+    ],
+    "transactions": {
+      "entrantFunding": "3Q1LqifkgoHoERD9XyvP2bWdaVbiMaySuHHEWVgTR3TLVpvNHmc6Cd1Kq2ncY3tPkLgf8KBTS2q8yXb6HoTxGB1Y",
+      "tokenFunding": "37ewm5KpaHk7zf7gTUgCG4s3mBoxSaA6NRTPmdZiugUTDcWNCeZ91Lj61zjP2TXa2FevMS2qzrQHLKuigyvashqB",
+      "createPool": "5t3LgYgRDMj1RDz4etPGAf9shhuEPSBJSChqEXpeHf7CdC5P3mVFLt29XWhJaKeFA2zZxiaNeBATaFARDYiq9WwT",
+      "creatorEntry": "HLGNbmN735iEcq7hJtJSyVWwE1nyjZN6EbSVaF5jxQa7BwkzcVKkRSHAaCwXdNvF9Lp9ZSu9katZHWJ6mnKpPXD",
+      "entrantEntry": "4e8L2ro4ggPXsqDVX71t6qpC8UU5zn8t4GF4ftHkjtN9BiHkkWGqAzDtKD4Hc7RKFeMWGmipF8jLky99oSbtsP2r"
+    }
+  },
+  "txline": {
+    "program": "6pW64gN1s2uqjHkn1unFeEjAwJkPGHoppGvS715wyP2J",
+    "testUsdtMint": "ELWTKspHKCnCfCiCiqYw1EDH77k8VCP74dK9qytG2Ujh",
+    "verification": {
+      "idlVersion": "1.5.6",
+      "fixtureId": 18257865,
+      "sequence": 1195,
+      "period": 100,
+      "finalVector": [4, 6, 3, 4],
+      "dailyScoresRoot": "C9vY83pzub2a4d3Qve5NuR4cuXc8Yq68fKRRad4xR4bi",
+      "signature": "533zeVf3FXQtgvpbZCsCLzY6VfP2N2uzhmvfKs2ipFj1ydgu8EtgRPoBMBJVpEP2QQC5TS6BJ2eV2Hha7fVcL6vq"
+    }
+  }
+}
