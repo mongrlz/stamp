@@ -2,6 +2,7 @@
   "name": "stamp",
   "version": "0.1.0",
   "private": true,
+  "author": "MONGRLZ",
   "description": "Wallet-native closest-match fingerprint pools settled by TxLINE multiproofs on Solana.",
   "type": "module",
   "engines": {

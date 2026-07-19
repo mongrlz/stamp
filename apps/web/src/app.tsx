@@ -944,7 +944,7 @@ export function App() {
       <MarketWire pool={pool} replay={replay} />
       {body}
       <footer className="mx-auto flex w-full max-w-[1500px] flex-wrap justify-between gap-3 border-t border-ink px-5 py-4 font-mono text-[0.65rem] tracking-[0.08em] md:px-8">
-        <span>STAMP · TxLINE · SOLANA DEVNET</span>
+        <span>STAMP · BY MONGRLZ · TxLINE · SOLANA DEVNET</span>
         <span>PAPER REPLAY IS SIMULATION · MATCH DATA IS AUTHENTIC</span>
       </footer>
       {showHowTo && <HowToPlay onClose={() => setShowHowTo(false)} />}

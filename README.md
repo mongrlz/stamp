@@ -2,6 +2,8 @@
 
 **Predict the shape of the match. Closest receipt wins.**
 
+**A MONGRLZ project.**
+
 STAMP is a wallet-native Solana pool where 2–16 people submit a four-number match
 fingerprint: home goals, away goals, home corners, and away corners.
 
