@@ -8,7 +8,7 @@ the selected devnet account to Anchor's signing interface; keys remain inside th
 ## Implemented screens
 
 - **Play** renders the real funded Spain–Argentina devnet pool, public entries, vault total,
-  settlement countdown, locked four-number STAMP, and physical receipt.
+  post-match proof status, locked four-number STAMP, and physical receipt.
 - **Replay** records a local paper prediction and plays the authenticated Belgium–Senegal
   archive through the contract scoring rules.
 - **Receipts** separates the real locked on-chain entry from the simulated paper result,

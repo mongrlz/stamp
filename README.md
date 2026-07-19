@@ -26,7 +26,7 @@ There is no admin resolution path and the keeper cannot redirect funds.
 - editable four-stat STAMP, event playback, physical receipt, deterministic paper leaderboard,
   and a link to the verified Solana proof
 - navigable Play, Replay, and Receipts surfaces with the real locked devnet pool, public
-  participant forecasts, settlement countdown, archive filters, and responsive receipt detail
+  participant forecasts, post-match proof messaging, archive filters, and responsive receipt detail
 - headless Wallet Standard discovery with a custom STAMP connector and browser-signed builders
   for create, enter, claim, and refund instructions; no private key reaches STAMP
 
