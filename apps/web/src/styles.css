@@ -956,6 +956,14 @@ a:focus-visible {
   .receipt { max-width: 500px; }
 }
 
+@media (min-width: 768px) and (max-width: 1300px) {
+  .play-shell .match-title,
+  .replay-shell .match-title {
+    gap: clamp(0.45rem, 1vw, 0.9rem);
+    font-size: clamp(3.5rem, 5.8vw, 4.7rem);
+  }
+}
+
 @media (max-width: 767px) {
   .paper-app { min-height: 100dvh !important; margin: 0; border: 0; border-radius: 0; }
   .market-wire { grid-template-columns: auto minmax(0, 1fr); min-height: 2.6rem; }

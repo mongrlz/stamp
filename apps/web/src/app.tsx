@@ -56,14 +56,6 @@ function shortAddress(address: string): string {
   return `${address.slice(0, 5)}…${address.slice(-4)}`;
 }
 
-function formatCountdown(target: string, now: number): string {
-  const seconds = Math.max(0, Number(target) - Math.floor(now / 1000));
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const remainder = seconds % 60;
-  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${remainder.toString().padStart(2, "0")}`;
-}
-
 function formatArchiveDate(timestamp: number | null): string {
   if (timestamp === null) return "ARCHIVED MATCH";
   const milliseconds = timestamp < 1_000_000_000_000 ? timestamp * 1_000 : timestamp;
@@ -134,13 +126,6 @@ function Header({ view, onView, onHowTo }: { view: AppView; onView(value: AppVie
 }
 
 function MarketWire({ pool, replay }: { pool: PublicPool | null; replay: ReplayResponse | null }) {
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1_000);
-    return () => window.clearInterval(timer);
-  }, []);
-
   const home = replay?.fixture?.participant1 ?? "FRANCE";
   const away = replay?.fixture?.participant2 ?? "ENGLAND";
   const consensus = pool?.entries.length
@@ -155,7 +140,7 @@ function MarketWire({ pool, replay }: { pool: PublicPool | null; replay: ReplayR
     ["POOL", pool ? `${formatPaperAmount((BigInt(pool.entryFee) * BigInt(pool.entryCount)).toString())} TEST USDT` : "—"],
     ["CROWD PICK", consensus],
     ["SCORING", "GOALS ×3 · CORNERS ×1"],
-    ["SETTLES IN", pool ? formatCountdown(pool.settleAfter, now) : "—"],
+    ["FINAL PROOF", pool ? "AFTER THE MATCH" : "—"],
     ["MARKET STATUS", pool?.status.toUpperCase() ?? "CONNECTING"],
     ["PAPER REPLAY", replay ? `${home} — ${away}` : "LOADING"],
     ["PROOF", "TXLINE → SOLANA DEVNET"],
@@ -317,11 +302,6 @@ function PlayScreen({
   const entry = pool.entries.find(({ owner: entryOwner }) => entryOwner === owner?.toBase58())
     ?? pool.entries[0];
   const [prediction, setPrediction] = useState<MatchFingerprint>(entry?.forecast ?? DEFAULT_STAMP);
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const interval = window.setInterval(() => setNow(Date.now()), 1_000);
-    return () => window.clearInterval(interval);
-  }, []);
   useEffect(() => {
     if (entry) setPrediction(entry.forecast);
   }, [entry]);
@@ -396,7 +376,7 @@ function PlayScreen({
             <div><strong>{pool.entryCount}</strong><span>OF {pool.maxEntries}<br />ENTERED</span></div>
             <div><strong>{formatPaperAmount((BigInt(pool.entryFee) * BigInt(pool.entryCount)).toString())}</strong><span>TEST USDT<br />IN VAULT</span></div>
           </div>
-          <div className="pool-lock"><span>SETTLEMENT OPENS</span><strong>{formatCountdown(pool.settleAfter, now)}</strong><em>DEVNET · TEST FUNDS</em></div>
+          <div className="pool-lock"><span>FINAL PROOF</span><strong>AFTER THE MATCH</strong><em>TXLINE · SOLANA DEVNET</em></div>
           <div className="participant-list">
             <div className="font-mono text-xs tracking-[0.08em]">POOL PARTICIPANTS</div>
             {pool.entries.map((item) => (
