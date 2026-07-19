@@ -4,6 +4,8 @@
 
 **A MONGRLZ project.**
 
+**Live demo:** [stamp.mongrlz.dev](https://stamp.mongrlz.dev/) · **Network:** Solana Devnet · **Hackathon track:** Prediction Markets & Settlement
+
 STAMP is a wallet-native Solana pool where 2–16 people submit a four-number match
 fingerprint: home goals, away goals, home corners, and away corners.
 
@@ -34,6 +36,30 @@ There is no admin resolution path and the keeper cannot redirect funds.
 
 Paper replay never connects a wallet or moves funds. Its match sequence and final fingerprint
 are authentic; its entries, rankings, and payouts are explicitly hypothetical.
+
+## Why TxLINE matters
+
+STAMP does not ask an administrator to type in the final score. A permissionless keeper submits
+one TxLINE `validate_stat_v3` multiproof for the four final match statistics. The on-chain program
+pins the expected oracle program and daily-root PDA, verifies the complete fingerprint, ranks every
+entry deterministically, and exposes claims directly to the winning wallets. TxLINE is therefore
+the settlement authority, not a decorative data feed.
+
+## Architecture and stack
+
+| Layer | Technology | Responsibility |
+| --- | --- | --- |
+| Web | React, TypeScript, Vite, Wallet Standard | Pool entry, replay, receipts, wallet-signed actions |
+| API | Node.js, TypeScript, SSE | Credential-safe fixture, pool, receipt, health, and live-event reads |
+| Keeper | Node.js, TxLINE client | Detect finalization and submit the authenticated four-stat proof |
+| On-chain | Rust, Anchor 0.32.1, SPL Token | Escrow, ranking, claims, tie splitting, and refunds |
+| Oracle | TxLINE `validate_stat_v3` | Multiproof validation against the pinned daily root |
+
+```text
+TxLINE -> server-only adapter -> keeper -> STAMP program -> PDA token vault
+                              \-> public read API -> browser
+Wallet -------------------------------------------------------> browser-signed transaction
+```
 
 ## Commands
 
@@ -121,3 +147,15 @@ pool. `deployments/devnet-spain-argentina-proof.json` records the authoritative 
 oracle verification and the correctly timed Spain–Argentina proof pool. Its settlement window
 opens before kickoff and remains live for 48 hours; the same artifact checkpoints settlement
 and participant-signed claims when finalization completes.
+
+## Development tools and credits
+
+STAMP was built by MONGRLZ with AI-assisted engineering support from **OpenAI Codex** and
+**Anthropic Claude Code**. They were used for product exploration, implementation assistance,
+code review, test authoring, debugging, documentation, and UI iteration. All generated work was
+reviewed, integrated, and tested by the project owner. Match and oracle data comes from TxLINE;
+the chain runtime and wallet flow use Solana Devnet.
+
+## License
+
+Hackathon prototype. See the repository history and documentation for implementation provenance.
